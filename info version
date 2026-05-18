@@ -9,3 +9,11 @@
 - 🗂️ "Changelog" completo integrado
 
 **¡Versión ultra estable lista para testear, compartir o seguir expandiendo!**
+# AuraOS Linux v7.0 LTS 🚀
+
+¡Nueva versión ultra-optimizada! Código más limpio, carga instantánea y corrección de errores en la barra de tareas.
+
+### 🛠️ Novedades:
+- **Control anti-clics fantasmas:** El menú de inicio y las apps ya no se congelan al arrastrar iconos.
+- **Tolerancia de arrastre mejorada:** Ajustado a un umbral de 8px (gracias a la base de GitHub Copilot).
+- **Estructura compacta:** Ideal para desarrolladores que quieran modificar o añadir sus propias apps rápidamente.
