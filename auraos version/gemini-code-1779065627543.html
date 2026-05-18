@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AuraOS Linux - Open Source v5.0</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Ubuntu', 'Segoe UI', sans-serif;
+            user-select: none;
+        }
+
+        body {
+            background: #0d0d0d;
+            height: 100vh;
+            overflow: hidden;
+            color: white;
+        }
+
+        /* --- SISTEMA DE NOTIFICACIONES --- */
+        #notification-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .notification {
+            background: rgba(20, 20, 20, 0.9);
+            border-left: 4px solid #f15d22;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 4px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+            font-size: 13px;
+            animation: slideIn 0.3s ease forwards;
+            backdrop-filter: blur(5px);
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(120%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        /* --- ESCRITORIO CON FONDOS CAMBIABLES --- */
+        #desktop {
+            width: 100%;
+            height: calc(100vh - 45px);
+            padding: 25px;
+            position: relative;
+            background: linear-gradient(135deg, #191919 0%, #080808 100%);
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            align-content: flex-start;
+            flex-wrap: wrap;
+            transition: background 0.5s ease;
+        }
+
+        .desktop-icon {
+            width: 95px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid transparent;
+            transition: all 0.2s;
+        }
+        .desktop-icon:hover {
+            background: rgba(241, 93, 34, 0.15);
+            border: 1px solid rgba(241, 93, 34, 0.3);
+            transform: translateY(-2px);
+        }
+        .desktop-icon span {
+            font-size: 34px;
+            text-align: center;
+        }
+        .desktop-icon p {
+            font-size: 12px;
+            text-align: center;
+            margin-top: 6px;
+            text-shadow: 1px 1px 4px rgba(0,0,0,0.9);
+            font-weight: 500;
+            color: #f0f0f0;
+        }
+
+        /* --- VENTANAS ARRASTRABLES --- */
+        .window {
+            position: absolute;
+            top: 70px;
+            left: 100px;
+            width: 620px;
+            height: 420px;
+            background: #1e1e1e;
+            border: 1px solid #333;
+            border-radius: 8px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.6);
+            display: none;
+            flex-direction: column;
+            z-index: 500;
+            overflow: hidden;
+        }
+
+        .window-header {
+            background: #141414;
+            padding: 12px 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #2b2b2b;
+            cursor: move;
+        }
+        .window-title { font-size: 13px; font-weight: bold; display: flex; align-items: center; gap: 8px; color: #ddd; }
+        .close-btn { width: 13px; height: 13px; background: #df4a16; border-radius: 50%; border: none; cursor: pointer; }
+        .close-btn:hover { background: #ff5c26; }
+        .window-body { padding: 15px; flex-grow: 1; background: #242424; overflow-y: auto; display: flex; flex-direction: column; }
+
+        /* --- APPS INTERNAS --- */
+        .cmd-box { background: #070707; font-family: 'Courier New', monospace; color: #f1f1f1; flex-grow: 1; border-radius: 6px; padding: 12px; overflow-y: auto; }
+        .cmd-stats { display: flex; gap: 20px; background: #111; padding: 6px 10px; border-radius: 4px; font-size: 11px; margin-bottom: 10px; border: 1px solid #222; color: #888; }
+        
+        /* Juego Tres en Raya */
+        .ttt-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; width: 180px; margin: 20px auto; }
+        .ttt-cell { width: 55px; height: 55px; background: #141414; border: 1px solid #333; display: flex; justify-content: center; align-items: center; font-size: 24px; font-weight: bold; cursor: pointer; color: #f15d22; }
+        .ttt-cell:hover { background: #222; }
+
+        /* Botones estilo Linux */
+        .linux-btn { background: #f15d22; color: white; border: none; padding: 8px 16px; border-radius: 4px; font-weight: bold; cursor: pointer; transition: 0.2s; }
+        .linux-btn:hover { background: #ff7038; }
+
+        /* --- BARRA DE TAREAS --- */
+        #taskbar { width: 100%; height: 45px; background: #0a0a0a; position: absolute; bottom: 0; display: flex; justify-content: space-between; align-items: center; padding: 0 15px; border-top: 1px solid #222; z-index: 999; }
+        #start-button { background: #f15d22; padding: 6px 14px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 13px; display: flex; align-items: center; gap: 8px; }
+        #start-menu { position: absolute; bottom: 55px; left: 15px; width: 260px; background: #141414; border: 1px solid #2b2b2b; border-radius: 6px; padding: 8px; display: none; box-shadow: 0 8px 25px rgba(0,0,0,0.6); }
+        #start-menu.active { display: block; }
+        .menu-item { padding: 9px 12px; font-size: 13px; border-radius: 4px; cursor: pointer; display: flex; align-items: center; gap: 10px; color: #ccc; }
+        .menu-item:hover { background: #222; color: #f15d22; }
+    </style>
+</head>
+<body>
+
+    <div id="notification-container"></div>
+
+    <div id="desktop">
+        <div class="desktop-icon" onclick="openWin('terminal-win')"><span>💻</span><p>Terminal</p></div>
+        <div class="desktop-icon" onclick="openWin('store-win')"><span>🛍️</span><p>Aura Store</p></div>
+        <div class="desktop-icon" onclick="openWin('assistant-win')"><span>🤖</span><p>Asistente</p></div>
+        <div class="desktop-icon" onclick="openWin('config-win')"><span>⚙️</span><p>Configuración</p></div>
+        <div class="desktop-icon" onclick="openWin('about-win')"><span>ℹ️</span><p>Acerca de</p></div>
+
+        <div class="desktop-icon" id="desk-superwium" style="display:none;" onclick="openWin('browser-win')"><span>🌐</span><p>Superwium</p></div>
+        <div class="desktop-icon" id="desk-mc" style="display:none;" onclick="openWin('mc-win')"><span>🟫</span><p>MC Tool</p></div>
+        <div class="desktop-icon" id="desk-game" style="display:none;" onclick="openWin('game-win')"><span>🎮</span><p>TicTacToe</p></div>
+    </div>
+
+    <div class="window" id="about-win" style="width: 450px; height: 320px;">
+        <div class="window-header"><span class="window-title">ℹ️ Acerca de AuraOS</span><button class="close-btn" onclick="closeWin('about-win')"></button></div>
+        <div class="window-body" style="text-align: center; gap: 10px; justify-content: center;">
+            <h2 style="color: #f15d22;">AuraOS Linux v5.0</h2>
+            <p style="font-size: 14px; color: #aaa;">El sistema simulado en HTML más rápido de la red.</p>
+            <hr style="border-color: #333; margin: 10px 0;">
+            <p><strong>Creador Oficial:</strong> Anyelo (anyelo888ra-ux)</p>
+            <p><strong>Tecnologías:</strong> HTML5, CSS3, JavaScript Puro</p>
+            <p style="font-size: 12px; color: #666;">Desarrollado en colaboración de código abierto con Gemini AI.</p>
+        </div>
+    </div>
+
+    <div class="window" id="config-win" style="width: 480px; height: 340px;">
+        <div class="window-header"><span class="window-title">⚙️ Panel de Configuración</span><button class="close-btn" onclick="closeWin('config-win')"></button></div>
+        <div class="window-body">
+            <h3>Personalizar Tema del Sistema</h3>
+            <p style="color: #888; font-size: 13px; margin-bottom: 15px;">Cambia el estilo visual del escritorio al instante:</p>
+            <div style="display: flex; flex-direction: column; gap: 10px;">
+                <button class="linux-btn" style="background: #111; border: 1px solid #444;" onclick="changeTheme('cyber')">🌌 Tema Cyberpunk (Por defecto)</button>
+                <button class="linux-btn" style="background: #0f2005; border: 1px solid #204005;" onclick="changeTheme('hacker')">🟩 Tema Matrix / Hacker</button>
+                <button class="linux-btn" style="background: #3a1505; border: 1px solid #6a2505;" onclick="changeTheme('aura')">🟧 Tema Aura Intenso</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="window" id="game-win" style="width: 400px; height: 380px;">
+        <div class="window-header"><span class="window-title">🎮 Tic-Tac-Toe Game</span><button class="close-btn" onclick="closeWin('game-win')"></button></div>
+        <div class="window-body" style="text-align: center;">
+            <p id="game-status" style="font-weight: bold; margin-bottom: 10px;">Turno de: X</p>
+            <div class="ttt-grid">
+                <div class="ttt-cell" onclick="playTurn(this, 0)"></div>
+                <div class="ttt-cell" onclick="playTurn(this, 1)"></div>
+                <div class="ttt-cell" onclick="playTurn(this, 2)"></div>
+                <div class="ttt-cell" onclick="playTurn(this, 3)"></div>
+                <div class="ttt-cell" onclick="playTurn(this, 4)"></div>
+                <div class="ttt-cell" onclick="playTurn(this, 5)"></div>
+                <div class="ttt-cell" onclick="playTurn(this, 6)"></div>
+                <div class="ttt-cell" onclick="playTurn(this, 7)"></div>
+                <div class="ttt-cell" onclick="playTurn(this, 8)"></div>
+            </div>
+            <button class="linux-btn" style="margin-top: 10px; font-size: 12px; padding: 6px 12px;" onclick="resetGame()">Reiniciar Tablero</button>
+        </div>
+    </div>
+
+    <div class="window" id="terminal-win">
+        <div class="window-header"><span class="window-title">💻 bash terminal v5.0</span><button class="close-btn" onclick="closeWin('terminal-win')"></button></div>
+        <div class="window-body" style="background:#090909; color:#4af626; font-family:monospace; padding:12px;">
+            <p>anyelo@auraos:~$ Escribe 'help', 'neofetch' o 'date'</p>
+            <div style="display:flex; gap:5px; margin-top:5px;"><span>$</span><input type="text" id="term-input" style="background:transparent; border:none; color:#4af626; width:100%; outline:none;" onkeydown="runCommand(event)"></div>
+            <p id="term-output" style="margin-top:10px; white-space:pre-wrap; color:#fff;"></p>
+        </div>
+    </div>
+
+    <div class="window" id="mc-win" style="width:640px;">
+        <div class="window-header"><span class="window-title">🟫 Minecraft Server Management</span><button class="close-btn" onclick="closeWin('mc-win')"></button></div>
+        <div class="window-body" style="padding:0; background:#050505;">
+            <div class="cmd-stats">
+                <span>CPU: <strong id="cpu-stat">0%</strong></span>
+                <span>RAM: <strong id="ram-stat">0.0 GB / 4.0 GB</strong></span>
+                <span>Jugadores: <strong id="players-stat">0 / 20</strong></span>
+            </div>
+            <div style="background: #070707; font-family: monospace; padding: 12px; flex-grow: 1; display: flex; flex-direction: column;">
+                <div id="mc-log" style="color: #ccc; flex-grow: 1; max-height: 230px; overflow-y: auto; white-space: pre-wrap;">[AuraEngine] Consola lista. Escribe "start" para iniciar.</div>
+                <div style="display: flex; gap: 5px; margin-top: 8px; border-top: 1px solid #222; padding-top: 8px;">
+                    <span>AuraServer></span>
+                    <input type="text" id="mc-input" style="background: transparent; border: none; color: #4af626; outline: none; width: 100%;" onkeydown="runServerCommand(event)" placeholder="start, stop, op [nombre]">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="window" id="store-win">
+        <div class="window-header"><span class="window-title">🛍️ Aura Store v5.0</span><button class="close-btn" onclick="closeWin('store-win')"></button></div>
+        <div class="window-body">
+            <div class="store-grid">
+                <div class="store-item">
+                    <div><strong>🎮 Mini-Juego Tic-Tac-Toe</strong><p style="font-size:11px; color:#888;">El juego clásico de tres en raya para pasar el rato.</p></div>
+                    <button class="linux-btn" id="btn-inst-game" onclick="installApp('game')">Instalar</button>
+                </div>
+                <div class="store-item">
+                    <div><strong>🟫 Minecraft Server Tool</strong><p style="font-size:11px; color:#888;">Controlador simulado de hilos y logs de servidores.</p></div>
+                    <button class="linux-btn" id="btn-inst-mc" onclick="installApp('mc')">Instalar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="taskbar">
+        <div id="start-button" onclick="toggleMenu()"><img src="https://upload.wikimedia.org/wikipedia/commons/a/af/Tux.png" alt="Tux" style="width:16px;"><span>Anyelo</span></div>
+        <div id="start-menu">
+            <div class="menu-item" onclick="openWin('terminal-win'); toggleMenu();">💻 Terminal</div>
+            <div class="menu-item" onclick="openWin('config-win'); toggleMenu();">⚙️ Configuración</div>
+            <div class="menu-item" onclick="openWin('about-win'); toggleMenu();">ℹ️ Acerca de</div>
+        </div>
+        <div id="system-tray"><span id="clock">00:00</span></div>
+    </div>
+
+    <script>
+        let serverRunning = false;
+        let statsInterval;
+        let activePlayers = 0;
+        let gameState = ["", "", "", "", "", "", "", "", ""];
+        let currentPlayer = "X";
+
+        window.onload = function() {
+            makeWindowsDraggable();
+            showNotification("🚀 Sistema AuraOS v5.0 cargado con éxito.");
+        };
+
+        function toggleMenu() { document.getElementById('start-menu').classList.toggle('active'); }
+        
+        function openWin(id) { 
+            document.getElementById(id).style.display = 'flex'; 
+            showNotification(`📂 Ventana abierta: ${id.replace('-win', '')}`);
+        }
+        
+        function closeWin(id) { document.getElementById(id).style.display = 'none'; }
+
+        // MOTOR DE NOTIFICACIONES SIMULADAS
+        function showNotification(text) {
+            const container = document.getElementById('notification-container');
+            const notif = document.createElement('div');
+            notif.className = 'notification';
+            notif.innerText = text;
+            container.appendChild(notif);
+            setTimeout(() => { notif.remove(); }, 3500);
+        }
+
+        // CONTROL DE TEMAS / COLORES
+        function changeTheme(theme) {
+            const desk = document.getElementById('desktop');
+            if (theme === 'cyber') {
+                desk.style.background = "linear-gradient(135deg, #191919 0%, #080808 100%)";
+                showNotification("🎨 Tema cambiado a Cyberpunk Oscuro.");
+            } else if (theme === 'hacker') {
+                desk.style.background = "linear-gradient(135deg, #0a1c06 0%, #020801 100%)";
+                showNotification("🟩 Modo Hacker Activado. Cuidado con el código.");
+            } else if (theme === 'aura') {
+                desk.style.background = "linear-gradient(135deg, #421605 0%, #120300 100%)";
+                showNotification("🟧 Estilo Aura de alta potencia configurado.");
+            }
+        }
+
+        // INSTALADOR DE APPS CON NOTIFICACIONES
+        function installApp(appName) {
+            document.getElementById(`desk-${appName}`).style.display = 'flex';
+            let btn = appName === 'mc' ? 'btn-inst-mc' : 'btn-inst-game';
+            document.getElementById(btn).innerText = "Instalado";
+            document.getElementById(btn).style.background = "#333";
+            showNotification(`🛍️ ¡Aplicación [${appName.toUpperCase()}] instalada en el escritorio!`);
+        }
+
+        // LÓGICA DEL MINI JUEGO TIC TAC TOE
+        function playTurn(cell, index) {
+            if (gameState[index] === "" && serverRunning === false) { // Reutilizado de forma simple
+                gameState[index] = currentPlayer;
+                cell.innerText = currentPlayer;
+                if (checkWinner()) {
+                    document.getElementById('game-status').innerText = `¡Ganador: ${currentPlayer}! 🎉`;
+                    showNotification(`🎮 ¡El jugador ${currentPlayer} ganó la partida!`);
+                    freezeGame();
+                    return;
+                }
+                currentPlayer = currentPlayer === "X" ? "O" : "X";
+                document.getElementById('game-status').innerText = `Turno de: ${currentPlayer}`;
+            }
+        }
+
+        function checkWinner() {
+            const wins = [[0,1,2], [3,4,5], [6,7,8], [0,3,6], [1,4,7], [2,5,8], [0,4,8], [2,4,6]];
+            return wins.some(comb => gameState[comb[0]] !== "" && gameState[comb[0]] === gameState[comb[1]] && gameState[comb[1]] === gameState[comb[2]]);
+        }
+
+        function resetGame() {
+            gameState = ["", "", "", "", "", "", "", "", ""];
+            currentPlayer = "X";
+            document.getElementById('game-status').innerText = "Turno de: X";
+            document.querySelectorAll('.ttt-cell').forEach(c => c.innerText = "");
+            showNotification("🎮 Tablero de juego reiniciado.");
+        }
+
+        function freezeGame() { gameState = ["X","X","X","X","X","X","X","X","X"]; }
+
+        // BASH TERMINAL CON MÁS COMANDOS
+        function runCommand(e) {
+            if(e.key === 'Enter') {
+                const input = document.getElementById('term-input');
+                const output = document.getElementById('term-output');
+                const cmd = input.value.trim().toLowerCase();
+                let res = "";
+
+                if(cmd==='help') res = "Comandos:\n- neofetch : Info del sistema\n- date : Ver la fecha de hoy\n- clear : Limpiar logs\n- theme hacker/cyber/aura : Cambiar el color de fondo";
+                else if(cmd==='neofetch') res = "OS: AuraOS Linux v5.0 Open Source\nKernel: 6.10-html-anyelo\nCreador: Anyelo\nApps instaladas: Terminal, Config, Store, About";
+                else if(cmd==='date') res = "Fecha simulada del sistema: " + new Date().toLocaleDateString();
+                else if(cmd.startsWith('theme ')) {
+                    let t = cmd.substring(6);
+                    changeTheme(t);
+                    res = `Aplicando el tema gráfico: ${t}`;
+                }
+                else if(cmd==='clear') { output.innerText = ""; input.value = ""; return; }
+                else if(cmd==='') return;
+                else res = `bash: comando no encontrado: ${cmd}`;
+
+                output.innerText += `\n$ ${input.value}\n${res}\n`;
+                input.value = "";
+            }
+        }
+
+        // SERVIDOR MINECRAFT
+        function runServerCommand(e) {
+            if (e.key === 'Enter') {
+                const input = document.getElementById('mc-input');
+                const log = document.getElementById('mc-log');
+                const cmd = input.value.trim().toLowerCase();
+                let txt = "";
+
+                if(cmd === 'start') {
+                    if(serverRunning) txt = "[WARN] Servidor ya activo.";
+                    else {
+                        serverRunning = true;
+                        txt = "[INFO] Abriendo archivos de entorno...\n[INFO] Servidor corriendo en puerto 25565.";
+                        showNotification("🟫 El servidor de Minecraft se ha encendido.");
+                        statsInterval = setInterval(() => {
+                            activePlayers = Math.floor(Math.random() * 10) + 1;
+                            document.getElementById('players-stat').innerText = `${activePlayers} / 20`;
+                            document.getElementById('cpu-stat').innerText = Math.floor(Math.random() * 30 + 10) + "%";
+                            document.getElementById('ram-stat').innerText = (1.5 + (activePlayers * 0.1)).toFixed(1) + " GB / 4.0 GB";
+                        }, 1000);
+                    }
+                } else if(cmd === 'stop') {
+                    if(!serverRunning) txt = "[WARN] Servidor ya apagado.";
+                    else {
+                        serverRunning = false;
+                        clearInterval(statsInterval);
+                        document.getElementById('players-stat').innerText = "0 / 20";
+                        document.getElementById('cpu-stat').innerText = "0%";
+                        document.getElementById('ram-stat').innerText = "0.0 GB / 4.0 GB";
+                        txt = "[INFO] Servidor detenido de forma limpia.";
+                        showNotification("🟫 Servidor de Minecraft apagado.");
+                    }
+                } else { txt = "[ERROR] Intenta start o stop."; }
+
+                log.innerText += `\nAuraServer> ${input.value}\n${txt}`;
+                input.value = "";
+                log.scrollTop = log.scrollHeight;
+            }
+        }
+
+        // DRAG AND DROP (MOVER VENTANAS)
+        function makeWindowsDraggable() {
+            const windows = document.querySelectorAll('.window');
+            windows.forEach(win => {
+                const header = win.querySelector('.window-header');
+                let isDragging = false, initialX, initialY;
+
+                header.addEventListener('mousedown', (e) => {
+                    isDragging = true;
+                    initialX = e.clientX - win.offsetLeft;
+                    initialY = e.clientY - win.offsetTop;
+                    windows.forEach(w => w.style.zIndex = 500);
+                    win.style.zIndex = 1000;
+                });
+
+                document.addEventListener('mousemove', (e) => {
+                    if (isDragging) {
+                        win.style.left = (e.clientX - initialX) + 'px';
+                        win.style.top = (e.clientY - initialY) + 'px';
+                    }
+                });
+
+                document.addEventListener('mouseup', () => isDragging = false);
+            });
+        }
+
+        // Reloj de la esquina
+        function updateClock() {
+            const now = new Date();
+            let h = now.getHours(), m = now.getMinutes();
+            document.getElementById('clock').innerText = (h<10?'0':'')+h + ':' + (m<10?'0':'')+m;
+        }
+        setInterval(updateClock, 1000); updateClock();
+    </script>
+</body>
+</html>
