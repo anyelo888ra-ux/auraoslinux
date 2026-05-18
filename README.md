@@ -1,19 +1,18 @@
 # AuraOS Linux Simulador
-Simula un escritorio Linux interactivo en tu navegador. Incluye terminal, tienda de apps, navegador web simulado y más.
 
-Probar
-Abre el archivo gemini-code-1779064653142.html en cualquier navegador moderno.
+Un entorno de escritorio Linux ficticio hecho en HTML, CSS y JavaScript — completamente seguro y solo corre en el navegador.
 
-Funcionalidades
-Escritorio con íconos y ventanas arrastrables
-Consola/terminal con comandos: neofetch, ls, clear
-Tienda de "aplicaciones": instala apps y aparecen en el escritorio
-Navegador web simulado
-Gestor de servidor Minecraft simulado
-Reproductor de música "Phonk"
-¿Cómo contribuir?
-¡Pull requests, sugerencias y forks son bienvenidos!
+**Repositorio en GitHub:**  
+[anyelo888ra-ux/auraoslinux](https://github.com/anyelo888ra-ux/auraoslinux)
 
-Licencia
-MIT
+## ¿Qué es?
+
+Simulador interactivo de escritorio Linux para experimentar sin riesgos en tu PC.
+
+## Probarlo
+1. Descarga o clona este repositorio.
+2. Abre el archivo `gemini-code-1779064653142.html` en cualquier navegador moderno.
+3. ¡Explora el entorno de AuraOS simulado!
+
+> ⚠️ **Este simulador es 100% seguro**: no afecta tu computadora ¡todo ocurre solo dentro del navegador!
 
