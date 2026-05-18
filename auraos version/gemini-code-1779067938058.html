@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AuraOS Linux - Extreme v6.6 (Anti-Bug Click & Drag)</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Ubuntu', 'Segoe UI', sans-serif;
+            user-select: none;
+        }
+
+        body {
+            background: #0d0d0d;
+            height: 100vh;
+            overflow: hidden;
+            color: white;
+        }
+
+        /* --- NOTIFICACIONES --- */
+        #notification-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .notification {
+            background: rgba(20, 20, 20, 0.95);
+            border-left: 4px solid #f15d22;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 4px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+            font-size: 13px;
+            animation: slideIn 0.3s ease forwards;
+            backdrop-filter: blur(5px);
+        }
+        @keyframes slideIn {
+            from { transform: translateX(120%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        /* --- ESCRITORIO --- */
+        #desktop {
+            width: 100%;
+            height: calc(100vh - 45px);
+            position: relative;
+            background: linear-gradient(135deg, #1f1f2e 0%, #0b0b12 100%);
+            overflow: hidden;
+            padding: 20px;
+        }
+
+        .desktop-icon {
+            width: 90px;
+            position: absolute;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: move;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid transparent;
+            transition: background 0.2s, border 0.2s;
+        }
+        .desktop-icon:hover {
+            background: rgba(241, 93, 34, 0.15);
+            border: 1px solid rgba(241, 93, 34, 0.3);
+        }
+        .desktop-icon span { font-size: 34px; pointer-events: none; }
+        .desktop-icon p {
+            font-size: 12px;
+            text-align: center;
+            margin-top: 6px;
+            text-shadow: 1px 1px 4px rgba(0,0,0,0.9);
+            font-weight: 500;
+            color: #f0f0f0;
+            pointer-events: none;
+        }
+
+        /* --- VENTANAS DE SISTEMA --- */
+        .window {
+            position: absolute;
+            width: 640px;
+            height: 440px;
+            background: #181824;
+            border: 1px solid #2d2d44;
+            border-radius: 8px;
+            box-shadow: 0 25px 60px rgba(0,0,0,0.7);
+            display: none;
+            flex-direction: column;
+            z-index: 500;
+            overflow: hidden;
+        }
+        .window-header {
+            background: #11111a;
+            padding: 10px 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #252538;
+            cursor: move;
+        }
+        .window-title { font-size: 13px; font-weight: bold; display: flex; align-items: center; gap: 8px; color: #ccc; }
+        
+        .window-controls { display: flex; gap: 8px; }
+        .win-btn { width: 12px; height: 12px; border-radius: 50%; border: none; cursor: pointer; }
+        .win-close { background: #ff5f56; }
+        .win-minimize { background: #ffbd2e; }
+        .win-maximize { background: #27c93f; }
+
+        .window-body { padding: 15px; flex-grow: 1; background: #1e1e2f; overflow-y: auto; display: flex; flex-direction: column; }
+
+        /* --- VIRTUAL FILE MANAGER --- */
+        .fm-toolbar { display: flex; gap: 10px; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid #2d2d44; }
+        .fm-grid { display: flex; flex-wrap: wrap; gap: 15px; }
+        .fm-item { width: 80px; display: flex; flex-direction: column; align-items: center; text-align: center; cursor: pointer; padding: 5px; border-radius: 4px; position: relative; }
+        .fm-item:hover { background: rgba(255,255,255,0.05); }
+        .fm-item span { font-size: 30px; }
+        .fm-item p { font-size: 11px; margin-top: 4px; word-break: break-all; }
+        .fm-delete-btn { position: absolute; top: -2px; right: -2px; background: #ff5f56; color: white; border: none; border-radius: 50%; width: 16px; height: 16px; font-size: 10px; cursor: pointer; display: none; }
+        .fm-item:hover .fm-delete-btn { display: block; }
+
+        /* --- SNAKE --- */
+        #snake-canvas { background: #0b0b12; display: block; margin: auto; border: 2px solid #2d2d44; }
+
+        /* --- INTERFAZ GENERAL --- */
+        .linux-btn { background: #f15d22; color: white; border: none; padding: 8px 16px; border-radius: 4px; font-weight: bold; cursor: pointer; transition: 0.2s; }
+        .linux-btn:hover { background: #ff7038; }
+        .linux-btn:disabled { background: #555; cursor: not-allowed; }
+        .store-grid { display: flex; flex-direction: column; gap: 10px; }
+        .store-item { background: #14141f; padding: 15px; border-radius: 6px; border: 1px solid #252538; display: flex; justify-content: space-between; align-items: center; }
+
+        /* --- BARRA DE TAREAS --- */
+        #taskbar { width: 100%; height: 45px; background: #09090f; position: absolute; bottom: 0; display: flex; justify-content: space-between; align-items: center; padding: 0 15px; border-top: 1px solid #202030; z-index: 9999; }
+        #start-button { background: #f15d22; padding: 6px 14px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 13px; display: flex; align-items: center; gap: 8px; }
+        
+        #active-apps-container { flex-grow: 1; margin-left: 20px; display: flex; gap: 8px; }
+        .taskbar-app-tab { background: #1a1a26; padding: 6px 12px; border-radius: 4px; font-size: 12px; border: 1px solid #2d2d44; cursor: pointer; display: flex; align-items: center; gap: 6px; }
+        .taskbar-app-tab.active { background: #f15d22; border-color: #ff7038; }
+
+        #start-menu { position: absolute; bottom: 55px; left: 15px; width: 260px; background: #11111a; border: 1px solid #252538; border-radius: 6px; padding: 8px; display: none; box-shadow: 0 8px 25px rgba(0,0,0,0.6); }
+        #start-menu.active { display: block; }
+        .menu-item { padding: 9px 12px; font-size: 13px; border-radius: 4px; cursor: pointer; display: flex; align-items: center; gap: 10px; color: #ccc; }
+        .menu-item:hover { background: #1e1e2f; color: #f15d22; }
+
+        #system-tray { display: flex; align-items: center; gap: 12px; font-size: 12px; color: #aaa; }
+        #calendar-widget { background: #14141f; padding: 4px 8px; border-radius: 4px; border: 1px solid #252538; color: #fff; font-weight: 500; }
+    </style>
+</head>
+<body>
+
+    <div id="notification-container"></div>
+
+    <div id="desktop">
+        <div id="icon-files" class="desktop-icon" style="top: 20px; left: 20px;" onmousedown="dragStart(event, this, 'files-win', '📁')"><span>📂</span><p data-lang-es="Archivos" data-lang-en="Files">Archivos</p></div>
+        <div id="icon-store" class="desktop-icon" style="top: 140px; left: 20px;" onmousedown="dragStart(event, this, 'store-win', '🛍️')"><span>🛍️</span><p data-lang-es="Aura Store" data-lang-en="Aura Store">Aura Store</p></div>
+        <div id="icon-config" class="desktop-icon" style="top: 260px; left: 20px;" onmousedown="dragStart(event, this, 'config-win', '⚙️')"><span>⚙️</span><p data-lang-es="Ajustes" data-lang-en="Settings">Ajustes</p></div>
+        <div id="icon-changelog" class="desktop-icon" style="top: 380px; left: 20px;" onmousedown="dragStart(event, this, 'changelog-win', '📜')"><span>📜</span><p data-lang-es="Historial" data-lang-en="Changelog">Historial</p></div>
+
+        <div id="desk-snake" class="desktop-icon" style="top: 20px; left: 140px; display:none;" onmousedown="dragStart(event, this, 'snake-win', '🐍')"><span>🐍</span><p>Snake Game</p></div>
+    </div>
+
+    <div class="window" id="files-win">
+        <div class="window-header">
+            <span class="window-title">📂 <span data-lang-es="Archivos del Sistema" data-lang-en="System Files">Archivos del Sistema</span></span>
+            <div class="window-controls">
+                <button class="win-btn win-minimize" onclick="minimizeWin('files-win')"></button>
+                <button class="win-btn win-maximize" onclick="maximizeWin('files-win')"></button>
+                <button class="win-btn win-close" onclick="closeWin('files-win')"></button>
+            </div>
+        </div>
+        <div class="window-body">
+            <div class="fm-toolbar">
+                <button class="linux-btn" onclick="createVirtualItem('folder')" data-lang-es="+ Carpeta" data-lang-en="+ Folder">+ Carpeta</button>
+                <button class="linux-btn" style="background:#27c93f;" onclick="createVirtualItem('file')" data-lang-es="+ Archivo .txt" data-lang-en="+ File .txt">+ Archivo .txt</button>
+            </div>
+            <div class="fm-grid" id="file-manager-render"></div>
+        </div>
+    </div>
+
+    <div class="window" id="config-win" style="width: 450px; height: 300px;">
+        <div class="window-header">
+            <span class="window-title">⚙️ <span data-lang-es="Panel de Control" data-lang-en="Control Panel">Panel de Control</span></span>
+            <div class="window-controls">
+                <button class="win-btn win-minimize" onclick="minimizeWin('config-win')"></button>
+                <button class="win-btn win-maximize" onclick="maximizeWin('config-win')"></button>
+                <button class="win-btn win-close" onclick="closeWin('config-win')"></button>
+            </div>
+        </div>
+        <div class="window-body" style="gap: 15px;">
+            <h3 data-lang-es="Idioma del Sistema" data-lang-en="System Language">Idioma del Sistema</h3>
+            <div style="display:flex; gap:10px;">
+                <button class="linux-btn" onclick="setLanguage('es')">Español 🇪🇸</button>
+                <button class="linux-btn" style="background:#444;" onclick="setLanguage('en')">English 🇺🇸</button>
+            </div>
+            <hr style="border-color:#2d2d44;">
+            <p style="font-size:12px; color:#888;" data-lang-es="AuraOS guardará tu idioma usando localStorage." data-lang-en="AuraOS will save your language selection via localStorage.">AuraOS guardará tu idioma usando localStorage.</p>
+        </div>
+    </div>
+
+    <div class="window" id="store-win" style="width: 500px; height: 350px;">
+        <div class="window-header">
+            <span class="window-title">🛍️ Aura Store v6.6</span>
+            <div class="window-controls">
+                <button class="win-btn win-close" onclick="closeWin('store-win')"></button>
+            </div>
+        </div>
+        <div class="window-body">
+            <div class="store-grid">
+                <div class="store-item">
+                    <div>
+                        <strong>🐍 Snake Retro Game</strong>
+                        <p style="font-size:11px; color:#888;" data-lang-es="Juego clásico de la serpiente." data-lang-en="Classic arcade snake game.">Juego clásico de la serpiente.</p>
+                    </div>
+                    <button class="linux-btn" id="btn-inst-snake" onclick="installApp('snake')" data-lang-es="Instalar" data-lang-en="Install">Instalar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="window" id="snake-win" style="width: 440px; height: 490px;">
+        <div class="window-header">
+            <span class="window-title">🐍 Snake Engine</span>
+            <div class="window-controls">
+                <button class="win-btn win-minimize" onclick="minimizeWin('snake-win')"></button>
+                <button class="win-btn win-close" onclick="closeWin('snake-win')"></button>
+            </div>
+        </div>
+        <div class="window-body" style="align-items: center; justify-content: center;">
+            <canvas id="snake-canvas" width="360" height="360"></canvas>
+            <button class="linux-btn" id="snake-start-btn" style="margin-top:10px; padding:4px 12px; font-size:12px;" onclick="startSnakeGame()" data-lang-es="Iniciar Juego" data-lang-en="Start Game">Iniciar Juego</button>
+        </div>
+    </div>
+
+    <div class="window" id="changelog-win" style="width: 550px; height: 400px;">
+        <div class="window-header">
+            <span class="window-title">📜 System Changelog</span>
+            <div class="window-controls">
+                <button class="win-btn win-close" onclick="closeWin('changelog-win')"></button>
+            </div>
+        </div>
+        <div class="window-body" style="gap: 15px; font-family: monospace; font-size: 12px; color: #b5b5c9;">
+            <h3 style="color:#f15d22;">AuraOS Version History</h3>
+            <div><strong>v6.6 (Parche)</strong> - Separación de Click/Drag Inteligente, Botón de Reinicio total del sistema, Centrado seguro de apps.</div>
+            <div><strong>v6.5</strong> - Persistencia LocalStorage, Restauración de ventanas, Límites de pantalla.</div>
+        </div>
+    </div>
+
+    <div id="taskbar">
+        <div id="start-button" onclick="toggleMenu()">🧠 <span>Menu</span></div>
+        <div id="active-apps-container"></div>
+        <div id="system-tray">
+            <span id="calendar-widget">📅 00/00/0000</span>
+            <span id="clock" style="color:white; font-weight:bold;">00:00</span>
+        </div>
+    </div>
+
+    <div id="start-menu">
+        <div class="menu-item" onclick="openWin('files-win', '📁'); toggleMenu();">📂 Archivos</div>
+        <div class="menu-item" onclick="openWin('config-win', '⚙️'); toggleMenu();">⚙️ Ajustes</div>
+        <div class="menu-item" onclick="openWin('changelog-win', '📜'); toggleMenu();">📜 Historial</div>
+        <hr style="border-color:#222; margin:5px 0;">
+        <div class="menu-item" style="color:#ff5f56;" onclick="clearSystemData();">🚨 Reiniciar Sistema (Reset)</div>
+    </div>
+
+    <script>
+        let currentLang = localStorage.getItem('aura_lang') || 'es';
+        let openApps = [];
+        let windowHistory = {};
+        let virtualFiles = JSON.parse(localStorage.getItem('aura_files')) || [
+            { id: 1, type: 'folder', name: 'Documents' },
+            { id: 2, type: 'file', name: 'readme.txt' }
+        ];
+
+        // REPRODUCTOR DE SONIDO RETRO
+        function playSystemSound(type) {
+            try {
+                const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.connect(gain); gain.connect(ctx.destination);
+                if (type === 'open') {
+                    osc.frequency.setValueAtTime(440, ctx.currentTime);
+                    osc.frequency.exponentialRampToValueAtTime(880, ctx.currentTime + 0.15);
+                    gain.gain.setValueAtTime(0.1, ctx.currentTime);
+                } else if (type === 'close') {
+                    osc.frequency.setValueAtTime(600, ctx.currentTime);
+                    osc.frequency.exponentialRampToValueAtTime(300, ctx.currentTime + 0.12);
+                    gain.gain.setValueAtTime(0.1, ctx.currentTime);
+                } else if (type === 'click') {
+                    osc.frequency.setValueAtTime(1000, ctx.currentTime);
+                    gain.gain.setValueAtTime(0.05, ctx.currentTime);
+                }
+                osc.start(); osc.stop(ctx.currentTime + 0.15);
+            } catch(e) {}
+        }
+
+        window.onload = function() {
+            makeWindowsDraggable();
+            renderVirtualFiles();
+            updateClockAndCalendar();
+            setInterval(updateClockAndCalendar, 1000);
+            setLanguage(currentLang);
+            loadIconPositions();
+
+            if(localStorage.getItem('aura_snake_installed') === 'true') {
+                document.getElementById('desk-snake').style.display = 'flex';
+                let btn = document.getElementById('btn-inst-snake');
+                if(btn) { btn.innerText = "Instalado"; btn.style.background = "#333"; }
+            }
+            showNotification("AuraOS v6.6 Live. Parche de Clic inteligente activo.");
+        };
+
+        // BOTÓN DE EMERGENCIA RECOMENDADO POR COPILOT
+        function clearSystemData() {
+            if(confirm("¿Quieres restablecer AuraOS por completo? Se borrarán posiciones e idioma.")) {
+                localStorage.clear();
+                location.reload();
+            }
+        }
+
+        // CONTROL DE CONTROLADOR DE VENTANAS ABRE/CIERRA
+        function openWin(id, icon = '💻') {
+            playSystemSound('open');
+            const win = document.getElementById(id);
+            win.style.display = 'flex';
+            win.style.zIndex = 1000;
+            
+            // CENTRADO AUTOMÁTICO DE SEGURIDAD (Por si estaban fuera de pantalla)
+            if(!win.style.top || win.style.top === '0px' || win.style.width === '100%') {
+                win.style.top = '10%';
+                win.style.left = '15%';
+            }
+
+            if(!openApps.some(app => app.id === id)) {
+                openApps.push({ id: id, icon: icon });
+                renderTaskbarTabs();
+            }
+        }
+
+        function closeWin(id) {
+            playSystemSound('close');
+            document.getElementById(id).style.display = 'none';
+            openApps = openApps.filter(app => app.id !== id);
+            renderTaskbarTabs();
+        }
+
+        function minimizeWin(id) {
+            playSystemSound('close');
+            document.getElementById(id).style.display = 'none';
+        }
+
+        function maximizeWin(id) {
+            playSystemSound('click');
+            const win = document.getElementById(id);
+            if(win.style.width === '100%') {
+                let old = windowHistory[id] || { w: '640px', h: '440px', t: '10%', l: '15%' };
+                win.style.width = old.w; win.style.height = old.h;
+                win.style.top = old.t; win.style.left = old.l;
+            } else {
+                windowHistory[id] = { w: win.style.width, h: win.style.height, t: win.style.top, l: win.style.left };
+                win.style.width = '100%';
+                win.style.height = 'calc(100vh - 45px)';
+                win.style.top = '0'; win.style.left = '0';
+            }
+        }
+
+        function renderTaskbarTabs() {
+            const container = document.getElementById('active-apps-container');
+            container.innerHTML = '';
+            openApps.forEach(app => {
+                const tab = document.createElement('div');
+                tab.className = 'taskbar-app-tab';
+                const name = app.id.replace('-win', '').toUpperCase();
+                tab.innerText = `${app.icon} ${name}`;
+                tab.onclick = () => {
+                    const win = document.getElementById(app.id);
+                    if(win.style.display === 'none') {
+                        win.style.display = 'flex';
+                        playSystemSound('open');
+                    } else {
+                        win.style.display = 'none';
+                    }
+                };
+                container.appendChild(tab);
+            });
+        }
+
+        function toggleMenu() { document.getElementById('start-menu').classList.toggle('active'); }
+
+        function setLanguage(lang) {
+            currentLang = lang;
+            localStorage.setItem('aura_lang', lang);
+            document.querySelectorAll('[data-lang-es]').forEach(el => {
+                el.innerText = el.getAttribute(`data-lang-${lang}`);
+            });
+        }
+
+        // MOTOR DRAG AND DROP INTEGRADO CON DETECTOR DE CLIC SEGURO
+        let activeDragElement = null;
+        let offsetX = 0, offsetY = 0;
+        let startX = 0, startY = 0;
+        let targetWinId = '', targetIcon = '';
+
+        function dragStart(e, element, winId, icon) {
+            activeDragElement = element;
+            targetWinId = winId;
+            targetIcon = icon;
+            
+            // Guardamos donde empezó el toque/click
+            startX = e.clientX;
+            startY = e.clientY;
+
+            offsetX = e.clientX - element.offsetLeft;
+            offsetY = e.clientY - element.offsetTop;
+            
+            document.addEventListener('mousemove', dragMove);
+            document.addEventListener('mouseup', dragEnd);
+        }
+
+        function dragMove(e) {
+            if (activeDragElement) {
+                let x = e.clientX - offsetX;
+                let y = e.clientY - offsetY;
+                
+                let maxW = document.getElementById('desktop').clientWidth - activeDragElement.clientWidth;
+                let maxH = document.getElementById('desktop').clientHeight - activeDragElement.clientHeight;
+                if(x < 0) x = 0; if(x > maxW) x = maxW;
+                if(y < 0) y = 0; if(y > maxH) y = maxH;
+
+                activeDragElement.style.left = x + 'px';
+                activeDragElement.style.top = y + 'px';
+            }
+        }
+
+        function dragEnd(e) {
+            document.removeEventListener('mousemove', dragMove);
+            document.removeEventListener('mouseup', dragEnd);
+
+            if(activeDragElement) {
+                // Filtro de Copilot: Calculamos cuántos píxeles se movió
+                let moveDistanceX = Math.abs(e.clientX - startX);
+                let moveDistanceY = Math.abs(e.clientY - startY);
+
+                if(moveDistanceX < 6 && moveDistanceY < 6) {
+                    // Si se movió menos de 6 píxeles, ¡Es un clic real! Abrimos la app.
+                    openWin(targetWinId, targetIcon);
+                } else {
+                    // Si se movió más, fue un arrastre. Guardamos la posición.
+                    localStorage.setItem(activeDragElement.id + '_left', activeDragElement.style.left);
+                    localStorage.setItem(activeDragElement.id + '_top', activeDragElement.style.top);
+                }
+            }
+            activeDragElement = null;
+        }
+
+        function loadIconPositions() {
+            const icons = ['icon-files', 'icon-store', 'icon-config', 'icon-changelog', 'desk-snake'];
+            icons.forEach(id => {
+                let el = document.getElementById(id);
+                if(el && localStorage.getItem(id + '_left')) {
+                    el.style.left = localStorage.getItem(id + '_left');
+                    el.style.top = localStorage.getItem(id + '_top');
+                }
+            });
+        }
+
+        // VIRTUAL FILES SYSTEM
+        function renderVirtualFiles() {
+            const renderBox = document.getElementById('file-manager-render');
+            renderBox.innerHTML = '';
+            virtualFiles.forEach(item => {
+                const div = document.createElement('div');
+                div.className = 'fm-item';
+                div.innerHTML = `
+                    <span>${item.type === 'folder' ? '📁' : '📄'}</span>
+                    <p>${item.name}</p>
+                    <button class="fm-delete-btn" onclick="deleteVirtualItem(${item.id}); event.stopPropagation();">X</button>
+                `;
+                renderBox.appendChild(div);
+            });
+        }
+
+        function createVirtualItem(type) {
+            playSystemSound('click');
+            const name = prompt(currentLang === 'es' ? "Nombre del elemento:" : "Item name:");
+            if(name) {
+                virtualFiles.push({ id: Date.now(), type: type, name: type === 'file' && !name.endsWith('.txt') ? name + '.txt' : name });
+                localStorage.setItem('aura_files', JSON.stringify(virtualFiles));
+                renderVirtualFiles();
+            }
+        }
+
+        function deleteVirtualItem(id) {
+            playSystemSound('close');
+            virtualFiles = virtualFiles.filter(item => item.id !== id);
+            localStorage.setItem('aura_files', JSON.stringify(virtualFiles));
+            renderVirtualFiles();
+        }
+
+        function installApp(app) {
+            playSystemSound('click');
+            document.getElementById(`desk-${app}`).style.display = 'flex';
+            localStorage.setItem('aura_snake_installed', 'true');
+            showNotification("Snake Game instalado correctamente.");
+        }
+
+        // ENGINE SNAKE
+        let canvas, ctxCanvas, snake, food, dx, dy, score, snakeInterval;
+        let isGameRunning = false;
+
+        function startSnakeGame() {
+            if(isGameRunning) return;
+            isGameRunning = true;
+            document.getElementById('snake-start-btn').disabled = true;
+
+            canvas = document.getElementById('snake-canvas');
+            ctxCanvas = canvas.getContext('2d');
+            snake = [{x: 160, y: 160}, {x: 140, y: 160}, {x: 120, y: 160}];
+            dx = 20; dy = 0; score = 0;
+            generateFood();
+            clearInterval(snakeInterval);
+            snakeInterval = setInterval(moveSnake, 150);
+            document.addEventListener('keydown', changeSnakeDirection);
+        }
+
+        function moveSnake() {
+            const head = {x: snake[0].x + dx, y: snake[0].y + dy};
+            snake.unshift(head);
+            if (head.x === food.x && head.y === food.y) {
+                score += 10; playSystemSound('click'); generateFood();
+            } else { snake.pop(); }
+
+            if (head.x < 0 || head.x >= canvas.width || head.y < 0 || head.y >= canvas.height || checkSnakeCollision(head)) {
+                clearInterval(snakeInterval);
+                showNotification("Game Over! Score: " + score);
+                isGameRunning = false;
+                document.getElementById('snake-start-btn').disabled = false;
+            }
+            drawSnake();
+        }
+
+        function generateFood() {
+            food = {
+                x: Math.floor(Math.random() * (canvas.width / 20)) * 20,
+                y: Math.floor(Math.random() * (canvas.height / 20)) * 20
+            };
+        }
+
+        function drawSnake() {
+            ctxCanvas.clearRect(0, 0, canvas.width, canvas.height);
+            ctxCanvas.fillStyle = '#ff5f56'; ctxCanvas.fillRect(food.x, food.y, 18, 18);
+            ctxCanvas.fillStyle = '#27c93f'; snake.forEach(part => ctxCanvas.fillRect(part.x, part.y, 18, 18));
+        }
+
+        function checkSnakeCollision(head) { return snake.slice(1).some(part => part.x === head.x && part.y === head.y); }
+
+        function changeSnakeDirection(e) {
+            if (e.key === 'ArrowLeft' && dx === 0) { dx = -20; dy = 0; }
+            if (e.key === 'ArrowUp' && dy === 0) { dx = 0; dy = -20; }
+            if (e.key === 'ArrowRight' && dx === 0) { dx = 20; dy = 0; }
+            if (e.key === 'ArrowDown' && dy === 0) { dx = 0; dy = 20; }
+        }
+
+        function showNotification(text) {
+            const container = document.getElementById('notification-container');
+            const notif = document.createElement('div');
+            notif.className = 'notification'; notif.innerText = text;
+            container.appendChild(notif);
+            setTimeout(() => { notif.remove(); }, 3500);
+        }
+
+        function makeWindowsDraggable() {
+            const windows = document.querySelectorAll('.window');
+            windows.forEach(win => {
+                const header = win.querySelector('.window-header');
+                let isDragging = false, initialX, initialY;
+                header.addEventListener('mousedown', (e) => {
+                    if(e.target.classList.contains('win-btn')) return;
+                    isDragging = true;
+                    initialX = e.clientX - win.offsetLeft;
+                    initialY = e.clientY - win.offsetTop;
+                    windows.forEach(w => w.style.zIndex = 500); win.style.zIndex = 1000;
+                });
+                document.addEventListener('mousemove', (e) => {
+                    if (isDragging) {
+                        win.style.left = (e.clientX - initialX) + 'px';
+                        win.style.top = (e.clientY - initialY) + 'px';
+                    }
+                });
+                document.addEventListener('mouseup', () => isDragging = false);
+            });
+        }
+
+        function updateClockAndCalendar() {
+            const now = new Date();
+            let h = now.getHours(), m = now.getMinutes();
+            document.getElementById('clock').innerText = (h<10?'0':'')+h + ':' + (m<10?'0':'')+m;
+            let day = now.getDate(), month = now.getMonth() + 1, year = now.getFullYear();
+            document.getElementById('calendar-widget').innerText = `📅 ${(day<10?'0':'')+day}/${(month<10?'0':'')+month}/${year}`;
+        }
+    </script>
+</body>
+</html>
