@@ -15,4 +15,4 @@ Simulador interactivo de escritorio Linux para experimentar sin riesgos en tu PC
 3. ¡Explora el entorno de AuraOS simulado!
 
 > ⚠️ **Este simulador es 100% seguro**: no afecta tu computadora ¡todo ocurre solo dentro del navegador!
-
+> ⚡ Proyecto creado con ayuda de [Gemini](https://gemini.google.com/) de Google
