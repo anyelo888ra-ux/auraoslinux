@@ -2,8 +2,16 @@
 
 Un entorno de escritorio Linux ficticio hecho en HTML, CSS y JavaScript — completamente seguro y solo corre en el navegador.
 
-**Repositorio en GitHub:**  
-[anyelo888ra-ux/auraoslinux](https://github.com/anyelo888ra-ux/auraoslinux)
+# AuraOS Linux Simulador
+
+Desarrollado por **c00lcompany** · Idea original de Anyelo ([@anyelo888ra-ux](https://github.com/anyelo888ra-ux))
+
+---
+
+## Créditos
+
+- **Desarrollador y diseño:** Anyelo | c00lcompany
+- **Asistencia IA:** Gemini (Google), GitHub Copilot
 
 ## ¿Qué es?
 
