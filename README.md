@@ -6,6 +6,9 @@
 Un sistema operativo ficticio de escritorio, hecho 100% en HTML, CSS y JavaScript.
 Simula un entorno Linux seguro, visual y educativo ejecutándose completamente en tu navegador.
 
+### 📺 Mira el video demo de RetroCore y AuraOS
+[YouTube: c00lcompany AuraOS Linux](https://www.youtube.com/@c00lcompanyauraoslinux)
+
 ---
 
 ## 🚀 ¿Qué es AuraOS Linux?
