@@ -17,3 +17,12 @@
 - **Control anti-clics fantasmas:** El menú de inicio y las apps ya no se congelan al arrastrar iconos.
 - **Tolerancia de arrastre mejorada:** Ajustado a un umbral de 8px (gracias a la base de GitHub Copilot).
 - **Estructura compacta:** Ideal para desarrolladores que quieran modificar o añadir sus propias apps rápidamente.
+AuraOS Linux v7.1 – “Last Light”
+
+- Nuevo tema visual AuraLight 7.1
+- Mejoras en el panel superior (reloj, iconos, alineación)
+- Correcciones de diseño en ventanas y botones
+- Pantalla de inicio actualizada con logo centrado
+- Nueva ventana "Acerca de AuraOS"
+- Optimización general de la experiencia de usuario
+- Preparación interna para AuraOS 8.0
