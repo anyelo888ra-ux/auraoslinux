@@ -41,3 +41,8 @@ Compilación: 2026.05.29
 Versiones anteriores:
 • v7.1 – Last Light
 • v7.0 – Ultra Optimized
+⚠️ ADVERTENCIA: AuraOS Linux ISO es un sistema experimental.
+No instales este sistema en tu PC real.
+Solo úsalo en máquinas virtuales (VirtualBox, VMware, QEMU).
+
+Instalar AuraOS en un disco físico puede causar pérdida total de datos.
