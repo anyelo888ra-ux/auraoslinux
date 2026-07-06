@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AuraOS Linux - v8.0 New Dawn</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Ubuntu', sans-serif; user-select: none; }
+        body { background: #02030a; height: 100vh; overflow: hidden; color: white; }
+
+        /* NOTIFICACIONES v2 */
+        #notif-box { position: fixed; top: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; }
+        .notif { 
+            background: radial-gradient(circle at top left, rgba(120,80,255,0.4), rgba(10,10,20,0.95));
+            border-left: 4px solid #f15d22; 
+            padding: 12px 20px; 
+            border-radius: 6px; 
+            font-size: 13px; 
+            animation: slide 0.3s ease forwards, fadeout 0.3s ease 2.7s forwards; 
+            backdrop-filter: blur(6px); 
+        }
+        @keyframes slide { from { transform: translateX(120%); opacity:0; } to { transform: translateX(0); opacity:1; } }
+        @keyframes fadeout { to { opacity:0; transform: translateX(20px); } }
+
+        /* ESCRITORIO v8 – AuraEngine 2 */
+        #desktop {
+            width: 100%;
+            height: calc(100vh - 48px);
+            position: relative;
+            background:
+                radial-gradient(circle at top left, #3b2a7a 0%, transparent 55%),
+                radial-gradient(circle at bottom right, #f15d22 0%, transparent 60%),
+                linear-gradient(135deg, #050515 0%, #02030a 100%);
+            padding: 20px;
+        }
+        .desktop-icon { 
+            width: 90px; 
+            position: absolute; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            cursor: move; 
+            padding: 10px; 
+            border-radius: 10px; 
+            border: 1px solid transparent; 
+            background: rgba(10,10,20,0.35);
+            backdrop-filter: blur(4px);
+            transition: 0.15s;
+        }
+        .desktop-icon:hover { 
+            background: rgba(241, 93, 34, 0.18); 
+            border-color: rgba(241, 93, 34, 0.4); 
+            transform: translateY(-2px);
+        }
+        .desktop-icon span { font-size: 34px; pointer-events: none; }
+        .desktop-icon p { font-size: 12px; text-align: center; margin-top: 6px; text-shadow: 1px 1px 4px #000; color: #f0f0f0; pointer-events: none; }
+
+        /* VENTANAS v8 */
+        .window { 
+            position: absolute; 
+            width: 660px; 
+            height: 460px; 
+            background: radial-gradient(circle at top left, #262648, #151524); 
+            border: 1px solid #34345a; 
+            border-radius: 10px; 
+            box-shadow: 0 25px 70px rgba(0,0,0,0.8); 
+            display: none; 
+            flex-direction: column; 
+            z-index: 500; 
+            overflow: hidden; 
+        }
+        .window-header { 
+            background: linear-gradient(90deg, #101020, #181832); 
+            padding: 10px 15px; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            border-bottom: 1px solid #2b2b4a; 
+            cursor: move; 
+        }
+        .window-title { font-size: 13px; font-weight: bold; display: flex; align-items: center; gap: 8px; color: #e0e0ff; }
+        .window-controls { display: flex; gap: 8px; }
+        .win-btn { width: 12px; height: 12px; border-radius: 50%; border: none; cursor: pointer; }
+        .win-close { background: #ff5f56; } 
+        .win-min { background: #ffbd2e; } 
+        .win-max { background: #27c93f; }
+        .window-body { padding: 15px; flex-grow: 1; background: #181828; overflow-y: auto; display: flex; flex-direction: column; }
+
+        /* FILE MANAGER */
+        .fm-toolbar { display: flex; gap: 10px; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid #2d2d44; }
+        .fm-grid { display: flex; flex-wrap: wrap; gap: 15px; }
+        .fm-item { width: 80px; display: flex; flex-direction: column; align-items: center; text-align: center; cursor: pointer; padding: 5px; position: relative; border-radius: 6px; }
+        .fm-item:hover { background: rgba(255,255,255,0.05); }
+        .fm-item span { font-size: 30px; } 
+        .fm-item p { font-size: 11px; margin-top: 4px; word-break: break-all; }
+        .fm-del { position: absolute; top: -2px; right: -2px; background: #ff5f56; color: white; border: none; border-radius: 50%; width: 16px; height: 16px; font-size: 10px; cursor: pointer; display: none; }
+        .fm-item:hover .fm-del { display: block; }
+
+        /* TERMINAL y SNAKE */
+        .term-out { flex-grow: 1; background: #05050b; font-family: monospace; font-size: 12px; color: #00ff88; padding: 10px; border-radius: 4px; overflow-y: auto; border: 1px solid #252538; }
+        .term-row { display: flex; align-items: center; gap: 5px; font-family: monospace; font-size: 12px; color: #f15d22; margin-top: 10px; }
+        .term-row input { background: transparent; border: none; color: white; outline: none; flex-grow: 1; }
+        #snake-canvas { background: #05050c; display: block; margin: auto; border: 2px solid #2d2d44; }
+
+        /* COMPONENTES GENERALES */
+        .btn { background: #f15d22; color: white; border: none; padding: 8px 16px; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 13px; }
+        .btn:hover { background: #ff7038; } 
+        .btn:disabled { background: #555; cursor: not-allowed; }
+        .store-item { background: #14141f; padding: 15px; border-radius: 6px; border: 1px solid #252538; display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+
+        /* BARRA DE TAREAS v8 */
+        #taskbar {
+            width: 100%;
+            height: 48px;
+            background: linear-gradient(90deg, #050510, #0b0b18);
+            position: absolute;
+            bottom: 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 15px;
+            border-top: 1px solid #26263a;
+            z-index: 9999;
+        }
+        #start-btn { 
+            background: radial-gradient(circle at top left, #f15d22, #b13a18); 
+            padding: 6px 16px; 
+            border-radius: 999px; 
+            cursor: pointer; 
+            font-weight: bold; 
+            font-size: 13px; 
+            display:flex; 
+            align-items:center; 
+            gap:6px;
+        }
+        #start-btn span.logo { 
+            width:16px; 
+            height:16px; 
+            border-radius:4px; 
+            background: conic-gradient(from 180deg, #f15d22, #ffbd2e, #f15d22);
+        }
+        #apps-bar { flex-grow: 1; margin-left: 20px; display: flex; gap: 8px; }
+        .tab { 
+            background: #1a1a26; 
+            padding: 6px 12px; 
+            border-radius: 999px; 
+            font-size: 12px; 
+            border: 1px solid #2d2d44; 
+            cursor: pointer; 
+            max-width: 140px; 
+            overflow: hidden; 
+            text-overflow: ellipsis; 
+            white-space: nowrap;
+        }
+        #start-menu { 
+            position: absolute; 
+            bottom: 55px; 
+            left: 15px; 
+            width: 320px; 
+            background: #0b0b16; 
+            border: 1px solid #252538; 
+            border-radius: 10px; 
+            padding: 10px; 
+            display: none; 
+            box-shadow: 0 18px 40px rgba(0,0,0,0.8); 
+            z-index: 10000; 
+        }
+        #start-menu.active { display: block; }
+        .menu-title { font-size: 12px; color:#888; margin:4px 2px 6px; text-transform:uppercase; letter-spacing:1px; }
+        .menu-item { padding: 8px 10px; font-size: 13px; border-radius: 6px; cursor: pointer; color: #ccc; display:flex; align-items:center; gap:6px; }
+        .menu-item:hover { background: #1e1e2f; color: #f15d22; }
+        #tray { display: flex; align-items: center; gap: 12px; font-size: 12px; color: #aaa; }
+        .gh-link { background: #24292e; color: white; text-decoration: none; padding: 4px 8px; border-radius: 4px; font-weight: bold; border: 1px solid #444; }
+
+        /* INFO VERSION LISTA */
+        .changelog-list { font-size: 12px; line-height: 1.5; color:#ddd; }
+        .changelog-list h4 { margin-top:8px; color:#f15d22; }
+        .changelog-list ul { margin-left:16px; margin-top:4px; }
+        .changelog-list li { margin-bottom:3px; }
+    </style>
+</head>
+<body>
+
+    <div id="notif-box"></div>
+
+    <div id="desktop">
+        <div id="icon-files" class="desktop-icon" style="top:20px; left:20px;" onmousedown="dragIcon(event, this, 'files-win', '📁')">
+            <span>📂</span><p data-es="Archivos" data-en="Files">Archivos</p>
+        </div>
+        <div id="icon-store" class="desktop-icon" style="top:140px; left:20px;" onmousedown="dragIcon(event, this, 'store-win', '🛍️')">
+            <span>🛍️</span><p data-es="Aura Store" data-en="Aura Store">Aura Store</p>
+        </div>
+        <div id="icon-config" class="desktop-icon" style="top:260px; left:20px;" onmousedown="dragIcon(event, this, 'config-win', '⚙️')">
+            <span>⚙️</span><p data-es="Ajustes" data-en="Settings">Ajustes</p>
+        </div>
+        <div id="icon-credits" class="desktop-icon" style="top:380px; left:20px;" onmousedown="dragIcon(event, this, 'credits-win', '📜')">
+            <span>📜</span><p data-es="Créditos" data-en="Credits">Créditos</p>
+        </div>
+        
+        <div id="desk-snake" class="desktop-icon" style="top:20px; left:140px; display:none;" onmousedown="dragIcon(event, this, 'snake-win', '🐍')">
+            <span>🐍</span><p>Snake Game</p>
+        </div>
+        <div id="desk-term" class="desktop-icon" style="top:140px; left:140px; display:none;" onmousedown="dragIcon(event, this, 'term-win', '💻')">
+            <span>💻</span><p>Terminal</p>
+        </div>
+    </div>
+
+    <!-- ARCHIVOS -->
+    <div class="window" id="files-win">
+        <div class="window-header">
+            <span class="window-title">📂 <span data-es="Archivos" data-en="Files">Archivos</span></span>
+            <div class="window-controls">
+                <button class="win-btn win-min" onclick="minWin('files-win')"></button>
+                <button class="win-btn win-max" onclick="maxWin('files-win')"></button>
+                <button class="win-btn win-close" onclick="closeWin('files-win')"></button>
+            </div>
+        </div>
+        <div class="window-body">
+            <div class="fm-toolbar">
+                <button class="btn" onclick="addFile('folder')">+ Carpeta</button>
+                <button class="btn" style="background:#27c93f;" onclick="addFile('file')">+ Archivo.txt</button>
+            </div>
+            <div class="fm-grid" id="fm-render"></div>
+        </div>
+    </div>
+
+    <!-- AJUSTES -->
+    <div class="window" id="config-win" style="width:420px; height:270px;">
+        <div class="window-header">
+            <span class="window-title">⚙️ <span data-es="Ajustes" data-en="Settings">Ajustes</span></span>
+            <div class="window-controls">
+                <button class="win-btn win-close" onclick="closeWin('config-win')"></button>
+            </div>
+        </div>
+        <div class="window-body" style="gap:10px;">
+            <h3>Idioma / Language</h3>
+            <div style="display:flex; gap:10px;">
+                <button class="btn" onclick="setLang('es')">Español 🇪🇸</button>
+                <button class="btn" style="background:#444;" onclick="setLang('en')">English 🇺🇸</button>
+            </div>
+            <h3 style="margin-top:15px;">Tema</h3>
+            <p style="font-size:12px; color:#aaa;">AuraOS v8.0 usa el tema "New Dawn" por defecto.</p>
+        </div>
+    </div>
+
+    <!-- AURA STORE -->
+    <div class="window" id="store-win" style="width:520px; height:360px;">
+        <div class="window-header">
+            <span class="window-title">🛍️ Aura Store</span>
+            <div class="window-controls">
+                <button class="win-btn win-close" onclick="closeWin('store-win')"></button>
+            </div>
+        </div>
+        <div class="window-body">
+            <div class="store-item">
+                <div>
+                    <strong>🐍 Snake Game</strong>
+                    <p style="font-size:11px; color:#888;">Juego clásico integrado.</p>
+                </div>
+                <button class="btn" id="ins-snake" onclick="install('snake')">Instalar</button>
+            </div>
+            <div class="store-item">
+                <div>
+                    <strong>💻 Bash Terminal</strong>
+                    <p style="font-size:11px; color:#888;">Línea de comandos AuraShell.</p>
+                </div>
+                <button class="btn" style="background:#27c93f;" id="ins-term" onclick="install('term')">Instalar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- TERMINAL -->
+    <div class="window" id="term-win" style="width:560px; height:360px;">
+        <div class="window-header">
+            <span class="window-title">💻 Terminal</span>
+            <div class="window-controls">
+                <button class="win-btn win-close" onclick="closeWin('term-win')"></button>
+            </div>
+        </div>
+        <div class="window-body">
+            <div class="term-out" id="t-out">AuraOS Bash v8.0<br>Escribe 'help' para comandos.<br><br>aura@linux:~$ </div>
+            <div class="term-row">
+                <span>aura@linux:~$</span>
+                <input type="text" id="t-in" onkeydown="runCmd(event)">
+            </div>
+        </div>
+    </div>
+
+    <!-- SNAKE -->
+    <div class="window" id="snake-win" style="width:420px; height:480px;">
+        <div class="window-header">
+            <span class="window-title">🐍 Snake</span>
+            <div class="window-controls">
+                <button class="win-btn win-close" onclick="closeWin('snake-win')"></button>
+            </div>
+        </div>
+        <div class="window-body" style="align-items:center;">
+            <canvas id="snake-canvas" width="340" height="340"></canvas>
+            <button class="btn" id="s-start" style="margin-top:10px;" onclick="startSnake()">Jugar</button>
+        </div>
+    </div>
+
+    <!-- CRÉDITOS -->
+    <div class="window" id="credits-win" style="width:460px; height:290px;">
+        <div class="window-header">
+            <span class="window-title">📜 Créditos</span>
+            <div class="window-controls">
+                <button class="win-btn win-close" onclick="closeWin('credits-win')"></button>
+            </div>
+        </div>
+        <div class="window-body" style="font-family:monospace; font-size:13px; gap:8px;">
+            <h3 style="color:#f15d22;">AuraOS Linux v8.0 "New Dawn"</h3>
+            <p>• <strong>Lead Dev:</strong> Angelo (c00lkidd_v2yt)</p>
+            <p>• <strong>AI Assistants:</strong> Copilot & Gemini</p>
+            <p>• <strong>Base:</strong> AuraOS v7.1 "Last Light"</p>
+            <p>Motor visual AuraEngine 2, barra v8 y sistema de ventanas mejorado.</p>
+        </div>
+    </div>
+
+    <!-- INFO VERSIÓN -->
+    <div class="window" id="info-win" style="width:520px; height:360px;">
+        <div class="window-header">
+            <span class="window-title">ℹ️ Info de versión</span>
+            <div class="window-controls">
+                <button class="win-btn win-close" onclick="closeWin('info-win')"></button>
+            </div>
+        </div>
+        <div class="window-body" style="gap:10px; font-size:13px;">
+            <h3>AuraOS Linux v8.0 "New Dawn"</h3>
+            <p>Compilación: 2026.05.29</p>
+            <div class="changelog-list">
+                <h4>Últimas mejoras</h4>
+                <ul>
+                    <li>Nuevo motor visual AuraEngine 2.</li>
+                    <li>Ventanas rediseñadas con sombras dinámicas.</li>
+                    <li>Barra de tareas v8 con pestañas mejoradas.</li>
+                    <li>Sistema de notificaciones v2.</li>
+                    <li>Ventana "Info de versión" integrada.</li>
+                    <li>Mejoras de rendimiento en terminal y Snake.</li>
+                </ul>
+                <h4>Versiones anteriores</h4>
+                <ul>
+                    <li>v7.1 – "Last Light" (rama estable 7.x)</li>
+                    <li>v7.0 – "Ultra-Optimized"</li>
+                </ul>
+                <h4>Estado</h4>
+                <ul>
+                    <li>Canal: Estable</li>
+                    <li>Compatibilidad: Navegador moderno</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- TASKBAR -->
+    <div id="taskbar">
+        <div id="start-btn" onclick="toggleMenu()">
+            <span class="logo"></span> <span>Aura</span>
+        </div>
+        <div id="apps-bar"></div>
+        <div id="tray">
+            <a class="gh-link" href="https://github.com/anyelo888ra-ux/auraoslinux/tree/main" target="_blank">🐙 GitHub</a>
+            <span id="clock">00:00</span>
+        </div>
+    </div>
+
+    <!-- START MENU -->
+    <div id="start-menu">
+        <div class="menu-title">Aplicaciones</div>
+        <div class="menu-item" onclick="openWin('files-win','📁');toggleMenu()">📂 Archivos</div>
+        <div class="menu-item" onclick="openWin('store-win','🛍️');toggleMenu()">🛍️ Aura Store</div>
+        <div class="menu-item" onclick="openWin('term-win','💻');toggleMenu()">💻 Terminal</div>
+        <div class="menu-item" onclick="openWin('snake-win','🐍');toggleMenu()">🐍 Snake</div>
+        <div class="menu-title">Sistema</div>
+        <div class="menu-item" onclick="openWin('config-win','⚙️');toggleMenu()">⚙️ Ajustes</div>
+        <div class="menu-item" onclick="openWin('info-win','ℹ️');toggleMenu()">ℹ️ Info de versión</div>
+        <div class="menu-item" onclick="openWin('credits-win','📜');toggleMenu()">📜 Créditos</div>
+        <hr style="border-color:#222; margin:6px 0;">
+        <div class="menu-item" style="color:#ff5f56;" onclick="localStorage.clear();location.reload();">🚨 Reset</div>
+    </div>
+
+    <script>
+        let lang = localStorage.getItem('a_lang') || 'es', openApps = [], winHist = {};
+        let files = JSON.parse(localStorage.getItem('a_files')) || [{id:1, type:'folder', name:'Documentos'}];
+
+        const txt = {
+            es: { 
+                live: "AuraOS v8.0 en línea.", 
+                custom: "Nombre:", 
+                item: "Creado con éxito.", 
+                app: "Aura App instalada.", 
+                over: "Fin. Puntos: " 
+            },
+            en: { 
+                live: "AuraOS v8.0 online.", 
+                custom: "Name:", 
+                item: "Created successfully.", 
+                app: "App installed.", 
+                over: "Game Over. Score: " 
+            }
+        };
+
+        window.onload = () => {
+            initDragAndDrop(); updateTime(); setInterval(updateTime, 1000); setLang(lang); renderFiles();
+            document.addEventListener('keydown', changeDir);
+            ['snake', 'term'].forEach(a => {
+                if(localStorage.getItem(`a_${a}`) === 'true') {
+                    document.getElementById(`desk-${a}`).style.display = 'flex';
+                    let b = document.getElementById(`ins-${a}`); if(b) { b.innerText="OK"; b.style.background="#333"; b.disabled=true; }
+                }
+            });
+            showNotif(txt[lang].live);
+        };
+
+        function showNotif(t) {
+            let b = document.getElementById('notif-box'), n = document.createElement('div');
+            n.className = 'notif'; n.innerText = t; b.appendChild(n); setTimeout(() => n.remove(), 3000);
+        }
+
+        function updateTime() {
+            let d = new Date(), h = d.getHours(), m = d.getMinutes();
+            document.getElementById('clock').innerText = `${h<10?'0':''}${h}:${m<10?'0':''}${m}`;
+        }
+
+        function toggleMenu() { document.getElementById('start-menu').classList.toggle('active'); }
+
+        function setLang(l) {
+            lang = l; localStorage.setItem('a_lang', l);
+            document.querySelectorAll('[data-es]').forEach(e => e.innerText = e.getAttribute(`data-${l}`));
+        }
+
+        /* VENTANAS */
+        function openWin(id, icon) {
+            let w = document.getElementById(id); if(!w) return;
+            w.style.display = 'flex'; document.querySelectorAll('.window').forEach(win => win.style.zIndex = 500);
+            w.style.zIndex = 1000;
+            if(!w.style.top || w.style.top === '0px') { w.style.top = '15%'; w.style.left = '20%'; }
+            if(!openApps.some(a => a.id === id)) { openApps.push({id, icon}); renderTabs(); }
+        }
+
+        function closeWin(id) { document.getElementById(id).style.display = 'none'; openApps = openApps.filter(a => a.id !== id); renderTabs(); }
+        function minWin(id) { document.getElementById(id).style.display = 'none'; }
+        function maxWin(id) {
+            let w = document.getElementById(id);
+            if(w.style.width === '100%') {
+                let o = winHist[id] || {w:'660px', h:'460px', t:'15%', l:'20%'};
+                w.style.width = o.w; w.style.height = o.h; w.style.top = o.t; w.style.left = o.l;
+            } else {
+                winHist[id] = {w:w.style.width, h:w.style.height, t:w.style.top, l:w.style.left};
+                w.style.width = '100%'; w.style.height = 'calc(100vh - 48px)'; w.style.top = '0'; w.style.left = '0';
+            }
+        }
+
+        function renderTabs() {
+            let b = document.getElementById('apps-bar'); b.innerHTML = '';
+            openApps.forEach(a => {
+                let t = document.createElement('div'); t.className = 'tab'; t.innerText = `${a.icon} ${a.id.split('-')[0].toUpperCase()}`;
+                t.onclick = () => { 
+                    let w = document.getElementById(a.id); 
+                    if(w.style.display === 'none') { w.style.display = 'flex'; w.style.zIndex = 1000; }
+                    else { w.style.display = 'none'; }
+                };
+                b.appendChild(t);
+            });
+        }
+
+        /* DRAG ICONS & WINDOWS */
+        function dragIcon(e, el, winId, icon) {
+            if (window._dragActive) return; window._dragActive = true;
+            let sX = e.clientX, sY = e.clientY, iL = el.offsetLeft, iT = el.offsetTop, moved = false;
+
+            function move(me) {
+                let dX = me.clientX - sX, dY = me.clientY - sY;
+                if (Math.abs(dX) > 8 || Math.abs(dY) > 8) moved = true;
+                if (moved) {
+                    let x = iL + dX, y = iT + dY;
+                    let mX = document.getElementById('desktop').clientWidth - el.clientWidth;
+                    let mY = document.getElementById('desktop').clientHeight - el.clientHeight;
+                    el.style.left = Math.max(0, Math.min(x, mX)) + 'px';
+                    el.style.top = Math.max(0, Math.min(y, mY)) + 'px';
+                }
+            }
+            function up() {
+                document.removeEventListener('mousemove', move); document.removeEventListener('mouseup', up);
+                window._dragActive = false;
+                if (!moved) openWin(winId, icon);
+                else { localStorage.setItem(el.id+'_l', el.style.left); localStorage.setItem(el.id+'_t', el.style.top); }
+            }
+            document.addEventListener('mousemove', move); document.addEventListener('mouseup', up);
+        }
+
+        function initDragAndDrop() {
+            document.querySelectorAll('.desktop-icon').forEach(el => {
+                if(localStorage.getItem(el.id+'_l')) { el.style.left = localStorage.getItem(el.id+'_l'); el.style.top = localStorage.getItem(el.id+'_t'); }
+            });
+            document.querySelectorAll('.window').forEach(w => {
+                let h = w.querySelector('.window-header'); if(!h) return;
+                h.onmousedown = (e) => {
+                    if(e.target.classList.contains('win-btn')) return;
+                    let iX = e.clientX - w.offsetLeft, iY = e.clientY - w.offsetTop;
+                    document.onmousemove = (me) => { w.style.left = (me.clientX - iX)+'px'; w.style.top = (me.clientY - iY)+'px'; };
+                    document.onmouseup = () => document.onmousemove = document.onmouseup = null;
+                };
+            });
+        }
+
+        /* FILE MANAGER */
+        function renderFiles() {
+            let b = document.getElementById('fm-render'); if(!b) return; b.innerHTML = '';
+            files.forEach(f => {
+                let d = document.createElement('div'); d.className = 'fm-item';
+                d.innerHTML = `<span>${f.type==='folder'?'📁':'📄'}</span><p>${f.name}</p><button class="fm-del" onclick="delFile(${f.id});event.stopPropagation()">X</button>`;
+                b.appendChild(d);
+            });
+        }
+        function addFile(t) {
+            let n = prompt(txt[lang].custom);
+            if(n) { files.push({id:Date.now(), type:t, name: t==='file'&&!n.endsWith('.txt')?n+'.txt':n}); localStorage.setItem('a_files', JSON.stringify(files)); renderFiles(); showNotif(txt[lang].item); }
+        }
+        function delFile(id) { files = files.filter(f => f.id !== id); localStorage.setItem('a_files', JSON.stringify(files)); renderFiles(); }
+
+        function install(a) {
+            document.getElementById(`desk-${a}`).style.display = 'flex'; localStorage.setItem(`a_${a}`, 'true');
+            let b = document.getElementById(`ins-${a}`); b.innerText="OK"; b.style.background="#333"; b.disabled=true; showNotif(txt[lang].app);
+        }
+
+        /* TERMINAL BASH v8 */
+        function runCmd(e) {
+            if(e.key !== 'Enter') return;
+            let i = document.getElementById('t-in'), o = document.getElementById('t-out'), c = i.value.trim().toLowerCase(); if(!c) return;
+            let r = `<br><span style="color:#fff;">> ${c}</span><br>`;
+            if(c === 'help') r += "Comandos: neofetch, ls, clear, help, about, info";
+            else if(c === 'neofetch') r += "<span style='color:#f15d22;'> /\\_/\\ </span> <b>AuraOS New Dawn</b><br> Kernel: StableJS v8<br> Dev: Angelo";
+            else if(c === 'ls') files.forEach(f => r += `${f.type==='folder'?'📁':'📄'} ${f.name} `);
+            else if(c === 'clear') { o.innerHTML = "aura@linux:~$ "; i.value = ''; return; }
+            else if(c === 'about' || c === 'info') r += "AuraOS Linux v8.0 'New Dawn'<br>Basado en AuraOS v7.1 'Last Light'<br>Escritorio HTML simulado.";
+            else r += `bash: comando no encontrado: ${c}`;
+            o.innerHTML += r + "<br><br>aura@linux:~$ "; i.value = ''; o.scrollTop = o.scrollHeight; i.value = '';
+        }
+
+        /* SNAKE */
+        let cv, cx, sn, fd, dx, dy, sc, sInt, sRun = false;
+        function startSnake() {
+            if(sRun) return; sRun = true; document.getElementById('s-start').disabled = true;
+            cv = document.getElementById('snake-canvas'); cx = cv.getContext('2d');
+            sn = [{x:160,y:160},{x:140,y:160}]; dx = 20; dy = 0; sc = 0; spawnFood(); clearInterval(sInt); sInt = setInterval(tick, 140);
+        }
+        function tick() {
+            let h = {x: sn[0].x + dx, y: sn[0].y + dy}; sn.unshift(h);
+            if(h.x === fd.x && h.y === fd.y) { sc += 10; spawnFood(); } else sn.pop();
+            if(h.x < 0 || h.x >= cv.width || h.y < 0 || h.y >= cv.height || sn.slice(1).some(p => p.x===h.x && p.y===h.y)) {
+                clearInterval(sInt); showNotif(txt[lang].over + sc); sRun = false; document.getElementById('s-start').disabled = false;
+            }
+            cx.clearRect(0,0,cv.width,cv.height); cx.fillStyle='#ff5f56'; cx.fillRect(fd.x,fd.y,18,18);
+            cx.fillStyle='#27c93f'; sn.forEach(p => cx.fillRect(p.x,p.y,18,18));
+        }
+        function spawnFood() { fd = { x: Math.floor(Math.random()*(cv.width/20))*20, y: Math.floor(Math.random()*(cv.height/20))*20 }; }
+        function changeDir(e) {
+            if(!sRun) return;
+            if(e.key === 'ArrowLeft' && dx === 0) { dx = -20; dy = 0; }
+            if(e.key === 'ArrowUp' && dy === 0) { dx = 0; dy = -20; }
+            if(e.key === 'ArrowRight' && dx === 0) { dx = 20; dy = 0; }
+            if(e.key === 'ArrowDown' && dy === 0) { dx = 0; dy = 20; }
+        }
+
+        console.log("AuraOS v8.0 listo. 'New Dawn' cargado.");
+    </script>
+</body>
+</html>
