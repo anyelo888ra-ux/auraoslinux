@@ -33,7 +33,7 @@ No modifica tu PC, es solo una web-app para experimentar y jugar con ventanas, t
 
 ## 🖼️ Capturas
 
-*(Agrega aquí imágenes o GIFs de tu simulador corriendo – esto atrae a usuarios y colaboradores)*
+file:///C:/Users/Anyeloxp/OneDrive/Imágenes/Screenshots/Captura%20de%20pantalla%202026-07-09%20001542.png
 
 ---
 
