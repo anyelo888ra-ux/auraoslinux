@@ -3,6 +3,8 @@
 ![Gemini](https://img.shields.io/badge/AI-Gemini-blueviolet?logo=google)
 ![Copilot](https://img.shields.io/badge/AI-GitHub%20Copilot-brightgreen?logo=github)
 
+[Visita la página en vivo de AuraOSLinux](https://auraoslinux.duckdns.org/)
+
 Un sistema operativo ficticio de escritorio, hecho 100% en HTML, CSS y JavaScript.
 Simula un entorno Linux seguro, visual y educativo ejecutándose completamente en tu navegador.
 
