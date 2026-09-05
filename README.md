@@ -43,7 +43,7 @@ No modifica tu PC, es solo una web-app para experimentar y jugar con ventanas, t
 ## 🔥 Prueba AuraOS
 
 1. Descarga o clona el repositorio.
-2. Abre el archivo `gemini-code-1779065627543.html` en tu navegador preferido.
+2. Entra a la carpeta `auraos version/` y abre la versión que quieras probar en tu navegador preferido.
 3. ¡Disfruta, experimenta y si quieres, sugiere tus mejoras!
 
 ---
