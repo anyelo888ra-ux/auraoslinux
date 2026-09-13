@@ -3,567 +3,1194 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AuraOS Linux - v8.0 New Dawn</title>
+    <title>AuraOS Linux v8.1.0 — Chronioñ Dawn</title>
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Ubuntu:wght@300;400;500;700&family=Ubuntu+Mono&display=swap');
+
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Ubuntu', sans-serif; user-select: none; }
         body { background: #02030a; height: 100vh; overflow: hidden; color: white; }
 
-        /* NOTIFICACIONES v2 */
-        #notif-box { position: fixed; top: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; }
-        .notif { 
+        /* NOTIFICACIONES */
+        #notif-box { position: fixed; top: 20px; right: 20px; z-index: 99999; display: flex; flex-direction: column; gap: 10px; pointer-events: none; }
+        .notif {
             background: radial-gradient(circle at top left, rgba(120,80,255,0.4), rgba(10,10,20,0.95));
-            border-left: 4px solid #f15d22; 
-            padding: 12px 20px; 
-            border-radius: 6px; 
-            font-size: 13px; 
-            animation: slide 0.3s ease forwards, fadeout 0.3s ease 2.7s forwards; 
-            backdrop-filter: blur(6px); 
+            border-left: 4px solid #f15d22;
+            padding: 12px 20px;
+            border-radius: 6px;
+            font-size: 13px;
+            animation: slideIn 0.3s ease forwards, fadeOut 0.3s ease 2.7s forwards;
+            backdrop-filter: blur(8px);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+            min-width: 220px;
         }
-        @keyframes slide { from { transform: translateX(120%); opacity:0; } to { transform: translateX(0); opacity:1; } }
-        @keyframes fadeout { to { opacity:0; transform: translateX(20px); } }
+        @keyframes slideIn { from { transform: translateX(120%); opacity:0; } to { transform: translateX(0); opacity:1; } }
+        @keyframes fadeOut { to { opacity:0; transform: translateX(20px); } }
 
-        /* ESCRITORIO v8 – AuraEngine 2 */
+        /* ESCRITORIO */
         #desktop {
             width: 100%;
             height: calc(100vh - 48px);
             position: relative;
             background:
-                radial-gradient(circle at top left, #3b2a7a 0%, transparent 55%),
-                radial-gradient(circle at bottom right, #f15d22 0%, transparent 60%),
+                radial-gradient(circle at 15% 20%, #3b2a7a 0%, transparent 45%),
+                radial-gradient(circle at 85% 80%, #f15d22 0%, transparent 50%),
+                radial-gradient(circle at 60% 40%, rgba(100,50,180,0.2) 0%, transparent 40%),
                 linear-gradient(135deg, #050515 0%, #02030a 100%);
             padding: 20px;
         }
-        .desktop-icon { 
-            width: 90px; 
-            position: absolute; 
-            display: flex; 
-            flex-direction: column; 
-            align-items: center; 
-            cursor: move; 
-            padding: 10px; 
-            border-radius: 10px; 
-            border: 1px solid transparent; 
-            background: rgba(10,10,20,0.35);
-            backdrop-filter: blur(4px);
-            transition: 0.15s;
-        }
-        .desktop-icon:hover { 
-            background: rgba(241, 93, 34, 0.18); 
-            border-color: rgba(241, 93, 34, 0.4); 
-            transform: translateY(-2px);
-        }
-        .desktop-icon span { font-size: 34px; pointer-events: none; }
-        .desktop-icon p { font-size: 12px; text-align: center; margin-top: 6px; text-shadow: 1px 1px 4px #000; color: #f0f0f0; pointer-events: none; }
 
-        /* VENTANAS v8 */
-        .window { 
-            position: absolute; 
-            width: 660px; 
-            height: 460px; 
-            background: radial-gradient(circle at top left, #262648, #151524); 
-            border: 1px solid #34345a; 
-            border-radius: 10px; 
-            box-shadow: 0 25px 70px rgba(0,0,0,0.8); 
-            display: none; 
-            flex-direction: column; 
-            z-index: 500; 
-            overflow: hidden; 
+        /* WALLPAPER PARTÍCULAS */
+        #particles { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+        .particle { position: absolute; border-radius: 50%; opacity: 0.15; animation: float linear infinite; }
+        @keyframes float { 0% { transform: translateY(100vh) rotate(0deg); opacity: 0; } 10% { opacity: 0.15; } 90% { opacity: 0.15; } 100% { transform: translateY(-100px) rotate(360deg); opacity: 0; } }
+
+        /* ICONOS ESCRITORIO */
+        .desktop-icon {
+            width: 88px;
+            position: absolute;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+            padding: 10px 8px;
+            border-radius: 12px;
+            border: 1px solid transparent;
+            background: rgba(10,10,25,0.3);
+            backdrop-filter: blur(6px);
+            transition: all 0.15s ease;
+            gap: 6px;
         }
-        .window-header { 
-            background: linear-gradient(90deg, #101020, #181832); 
-            padding: 10px 15px; 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center; 
-            border-bottom: 1px solid #2b2b4a; 
-            cursor: move; 
+        .desktop-icon:hover { background: rgba(241,93,34,0.15); border-color: rgba(241,93,34,0.35); transform: translateY(-3px); box-shadow: 0 8px 20px rgba(241,93,34,0.2); }
+        .desktop-icon .ico { font-size: 36px; pointer-events: none; line-height: 1; }
+        .desktop-icon p { font-size: 11px; text-align: center; text-shadow: 0 1px 4px rgba(0,0,0,0.9); color: #eee; pointer-events: none; line-height: 1.2; }
+
+        /* VENTANAS */
+        .window {
+            position: absolute;
+            width: 680px;
+            height: 480px;
+            background: linear-gradient(145deg, #1a1a30, #12121f);
+            border: 1px solid rgba(100,80,200,0.25);
+            border-radius: 12px;
+            box-shadow: 0 30px 80px rgba(0,0,0,0.85), 0 0 0 1px rgba(255,255,255,0.04) inset;
+            display: none;
+            flex-direction: column;
+            z-index: 500;
+            overflow: hidden;
+            transition: box-shadow 0.2s;
         }
-        .window-title { font-size: 13px; font-weight: bold; display: flex; align-items: center; gap: 8px; color: #e0e0ff; }
-        .window-controls { display: flex; gap: 8px; }
-        .win-btn { width: 12px; height: 12px; border-radius: 50%; border: none; cursor: pointer; }
-        .win-close { background: #ff5f56; } 
-        .win-min { background: #ffbd2e; } 
+        .window.focused { border-color: rgba(241,93,34,0.3); box-shadow: 0 30px 80px rgba(0,0,0,0.85), 0 0 20px rgba(241,93,34,0.08); }
+        .window-header {
+            background: linear-gradient(90deg, #0d0d1e, #14142a);
+            padding: 10px 14px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+            cursor: move;
+            flex-shrink: 0;
+        }
+        .window-title { font-size: 13px; font-weight: 500; display: flex; align-items: center; gap: 8px; color: #d0d0f0; }
+        .window-controls { display: flex; gap: 7px; }
+        .win-btn { width: 13px; height: 13px; border-radius: 50%; border: none; cursor: pointer; transition: filter 0.15s; }
+        .win-btn:hover { filter: brightness(1.3); }
+        .win-close { background: #ff5f56; }
+        .win-min { background: #ffbd2e; }
         .win-max { background: #27c93f; }
-        .window-body { padding: 15px; flex-grow: 1; background: #181828; overflow-y: auto; display: flex; flex-direction: column; }
+        .window-body { padding: 15px; flex-grow: 1; background: #111120; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
+
+        /* CHRONIOÑ BROWSER */
+        .browser-tabs { display: flex; gap: 4px; padding: 7px 12px; background: #0b0b18; border-bottom: 1px solid rgba(255,255,255,0.06); overflow-x: auto; flex-shrink: 0; }
+        .browser-tabs::-webkit-scrollbar { height: 3px; }
+        .browser-tabs::-webkit-scrollbar-thumb { background: #f15d22; border-radius: 2px; }
+        .browser-tab {
+            background: #151522;
+            padding: 6px 14px;
+            border-radius: 6px;
+            font-size: 12px;
+            border: 1px solid rgba(255,255,255,0.08);
+            cursor: pointer;
+            white-space: nowrap;
+            max-width: 160px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            color: #aaa;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.15s;
+        }
+        .browser-tab.active { background: rgba(241,93,34,0.2); border-color: rgba(241,93,34,0.4); color: #fff; }
+        .browser-tab .tab-close { font-size: 11px; opacity: 0.5; margin-left: 4px; }
+        .browser-tab .tab-close:hover { opacity: 1; color: #ff5f56; }
+        .new-tab-btn { background: transparent; border: 1px dashed rgba(255,255,255,0.15); color: #aaa; padding: 6px 10px; border-radius: 6px; cursor: pointer; font-size: 14px; }
+        .new-tab-btn:hover { border-color: #f15d22; color: #f15d22; }
+        .browser-bar { display: flex; gap: 8px; padding: 8px 12px; background: #0b0b18; border-bottom: 1px solid rgba(255,255,255,0.06); align-items: center; flex-shrink: 0; }
+        .browser-nav-btn { background: rgba(255,255,255,0.07); border: none; color: #aaa; width: 30px; height: 30px; border-radius: 50%; cursor: pointer; font-size: 14px; display: flex; align-items: center; justify-content: center; transition: all 0.15s; flex-shrink: 0; }
+        .browser-nav-btn:hover { background: rgba(241,93,34,0.2); color: #f15d22; }
+        .url-bar-wrap { flex-grow: 1; position: relative; display: flex; align-items: center; }
+        .url-bar-wrap .lock-icon { position: absolute; left: 12px; font-size: 12px; color: #27c93f; }
+        #browser-url { width: 100%; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); padding: 8px 14px 8px 32px; border-radius: 20px; color: white; font-size: 13px; outline: none; transition: border-color 0.15s; }
+        #browser-url:focus { border-color: #f15d22; background: rgba(255,255,255,0.08); }
+        #chronion-frame { flex-grow: 1; border: none; background: #fff; }
+
+        /* TERMINAL */
+        .term-out { flex-grow: 1; background: #04040c; font-family: 'Ubuntu Mono', monospace; font-size: 13px; color: #00ff88; padding: 12px; border-radius: 6px; overflow-y: auto; border: 1px solid #1a1a2e; line-height: 1.6; }
+        .term-row { display: flex; align-items: center; gap: 8px; font-family: 'Ubuntu Mono', monospace; font-size: 13px; margin-top: 8px; flex-shrink: 0; }
+        .term-prompt { color: #f15d22; white-space: nowrap; }
+        .term-row input { background: transparent; border: none; color: #00ff88; outline: none; flex-grow: 1; font-family: 'Ubuntu Mono', monospace; font-size: 13px; caret-color: #f15d22; }
 
         /* FILE MANAGER */
-        .fm-toolbar { display: flex; gap: 10px; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid #2d2d44; }
-        .fm-grid { display: flex; flex-wrap: wrap; gap: 15px; }
-        .fm-item { width: 80px; display: flex; flex-direction: column; align-items: center; text-align: center; cursor: pointer; padding: 5px; position: relative; border-radius: 6px; }
-        .fm-item:hover { background: rgba(255,255,255,0.05); }
-        .fm-item span { font-size: 30px; } 
-        .fm-item p { font-size: 11px; margin-top: 4px; word-break: break-all; }
-        .fm-del { position: absolute; top: -2px; right: -2px; background: #ff5f56; color: white; border: none; border-radius: 50%; width: 16px; height: 16px; font-size: 10px; cursor: pointer; display: none; }
-        .fm-item:hover .fm-del { display: block; }
+        .fm-toolbar { display: flex; gap: 8px; padding-bottom: 12px; border-bottom: 1px solid rgba(255,255,255,0.07); flex-shrink: 0; }
+        .fm-path { font-size: 12px; color: #888; padding: 6px 0; flex-shrink: 0; }
+        .fm-grid { display: flex; flex-wrap: wrap; gap: 12px; }
+        .fm-item { width: 76px; display: flex; flex-direction: column; align-items: center; text-align: center; cursor: pointer; padding: 8px 4px; border-radius: 8px; border: 1px solid transparent; transition: all 0.15s; position: relative; }
+        .fm-item:hover { background: rgba(241,93,34,0.1); border-color: rgba(241,93,34,0.2); }
+        .fm-item .ico { font-size: 32px; }
+        .fm-item p { font-size: 11px; margin-top: 5px; word-break: break-all; color: #ddd; line-height: 1.2; }
+        .fm-del { position: absolute; top: 2px; right: 2px; background: #ff5f56; color: white; border: none; border-radius: 50%; width: 16px; height: 16px; font-size: 9px; cursor: pointer; display: none; align-items: center; justify-content: center; }
+        .fm-item:hover .fm-del { display: flex; }
 
-        /* TERMINAL y SNAKE */
-        .term-out { flex-grow: 1; background: #05050b; font-family: monospace; font-size: 12px; color: #00ff88; padding: 10px; border-radius: 4px; overflow-y: auto; border: 1px solid #252538; }
-        .term-row { display: flex; align-items: center; gap: 5px; font-family: monospace; font-size: 12px; color: #f15d22; margin-top: 10px; }
-        .term-row input { background: transparent; border: none; color: white; outline: none; flex-grow: 1; }
-        #snake-canvas { background: #05050c; display: block; margin: auto; border: 2px solid #2d2d44; }
+        /* SNAKE */
+        #snake-canvas { background: #04040e; display: block; margin: auto; border: 1px solid #1a1a2e; border-radius: 4px; }
+        .snake-score { text-align: center; font-size: 14px; color: #aaa; margin-bottom: 8px; }
 
-        /* COMPONENTES GENERALES */
-        .btn { background: #f15d22; color: white; border: none; padding: 8px 16px; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 13px; }
-        .btn:hover { background: #ff7038; } 
-        .btn:disabled { background: #555; cursor: not-allowed; }
-        .store-item { background: #14141f; padding: 15px; border-radius: 6px; border: 1px solid #252538; display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        /* AJUSTES */
+        .settings-section { background: rgba(255,255,255,0.03); border-radius: 8px; padding: 14px; border: 1px solid rgba(255,255,255,0.06); }
+        .settings-section h4 { font-size: 12px; color: #888; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .setting-row { display: flex; justify-content: space-between; align-items: center; padding: 6px 0; }
+        .setting-row span { font-size: 13px; color: #ccc; }
+        .toggle { width: 36px; height: 20px; background: #2a2a3a; border-radius: 10px; cursor: pointer; position: relative; transition: background 0.2s; border: none; }
+        .toggle.on { background: #f15d22; }
+        .toggle::after { content:''; position: absolute; width: 14px; height: 14px; background: white; border-radius: 50%; top: 3px; left: 3px; transition: left 0.2s; }
+        .toggle.on::after { left: 19px; }
+        .theme-grid { display: flex; gap: 8px; }
+        .theme-swatch { width: 40px; height: 40px; border-radius: 8px; cursor: pointer; border: 2px solid transparent; transition: all 0.15s; }
+        .theme-swatch:hover, .theme-swatch.selected { border-color: #f15d22; transform: scale(1.1); }
 
-        /* BARRA DE TAREAS v8 */
+        /* STORE */
+        .store-item { background: rgba(255,255,255,0.03); padding: 14px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.07); display: flex; justify-content: space-between; align-items: center; transition: border-color 0.15s; }
+        .store-item:hover { border-color: rgba(241,93,34,0.25); }
+        .store-item-info { display: flex; align-items: center; gap: 12px; }
+        .store-item-ico { font-size: 28px; }
+        .store-item-desc strong { font-size: 13px; }
+        .store-item-desc p { font-size: 11px; color: #888; margin-top: 2px; }
+
+        /* VISOR DE IMAGEN */
+        #img-viewer-display { flex-grow: 1; display: flex; align-items: center; justify-content: center; background: #04040c; border-radius: 6px; overflow: hidden; }
+        #img-viewer-display img { max-width: 100%; max-height: 100%; object-fit: contain; }
+        #img-viewer-display .empty { color: #444; font-size: 13px; text-align: center; }
+
+        /* NOTEPAD */
+        #notepad-text { flex-grow: 1; background: #07070f; border: 1px solid #1a1a2e; border-radius: 6px; color: #e0e0ff; font-family: 'Ubuntu Mono', monospace; font-size: 13px; padding: 12px; outline: none; resize: none; line-height: 1.6; }
+
+        /* BOTONES */
+        .btn { background: #f15d22; color: white; border: none; padding: 8px 16px; border-radius: 6px; font-weight: 500; cursor: pointer; font-size: 13px; transition: all 0.15s; display: inline-flex; align-items: center; gap: 6px; }
+        .btn:hover { background: #ff7038; transform: translateY(-1px); }
+        .btn:disabled { background: #333; cursor: not-allowed; transform: none; color: #666; }
+        .btn.secondary { background: rgba(255,255,255,0.08); }
+        .btn.secondary:hover { background: rgba(255,255,255,0.14); }
+        .btn.green { background: #27c93f; }
+        .btn.green:hover { background: #33e04d; }
+        .btn.purple { background: #7c3aed; }
+        .btn.purple:hover { background: #8b5cf6; }
+
+        /* BARRA DE TAREAS */
         #taskbar {
             width: 100%;
             height: 48px;
-            background: linear-gradient(90deg, #050510, #0b0b18);
+            background: rgba(5,5,16,0.97);
             position: absolute;
             bottom: 0;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 0 15px;
-            border-top: 1px solid #26263a;
+            padding: 0 14px;
+            border-top: 1px solid rgba(255,255,255,0.07);
             z-index: 9999;
+            backdrop-filter: blur(20px);
         }
-        #start-btn { 
-            background: radial-gradient(circle at top left, #f15d22, #b13a18); 
-            padding: 6px 16px; 
-            border-radius: 999px; 
-            cursor: pointer; 
-            font-weight: bold; 
-            font-size: 13px; 
-            display:flex; 
-            align-items:center; 
-            gap:6px;
+        #start-btn {
+            background: linear-gradient(135deg, #f15d22, #b13a18);
+            padding: 6px 16px;
+            border-radius: 999px;
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border: none;
+            box-shadow: 0 2px 10px rgba(241,93,34,0.4);
+            transition: all 0.15s;
+            color: white;
         }
-        #start-btn span.logo { 
-            width:16px; 
-            height:16px; 
-            border-radius:4px; 
-            background: conic-gradient(from 180deg, #f15d22, #ffbd2e, #f15d22);
-        }
-        #apps-bar { flex-grow: 1; margin-left: 20px; display: flex; gap: 8px; }
-        .tab { 
-            background: #1a1a26; 
-            padding: 6px 12px; 
-            border-radius: 999px; 
-            font-size: 12px; 
-            border: 1px solid #2d2d44; 
-            cursor: pointer; 
-            max-width: 140px; 
-            overflow: hidden; 
-            text-overflow: ellipsis; 
+        #start-btn:hover { transform: scale(1.05); box-shadow: 0 4px 16px rgba(241,93,34,0.5); }
+        .aura-logo { width: 18px; height: 18px; border-radius: 5px; background: conic-gradient(from 0deg, #ffbd2e, #f15d22, #9b3cf7, #f15d22); }
+        #apps-bar { flex-grow: 1; margin: 0 14px; display: flex; gap: 6px; overflow: hidden; }
+        .taskbar-tab {
+            background: rgba(255,255,255,0.07);
+            padding: 5px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            border: 1px solid rgba(255,255,255,0.08);
+            cursor: pointer;
+            max-width: 130px;
+            overflow: hidden;
+            text-overflow: ellipsis;
             white-space: nowrap;
+            color: #ccc;
+            transition: all 0.15s;
         }
-        #start-menu { 
-            position: absolute; 
-            bottom: 55px; 
-            left: 15px; 
-            width: 320px; 
-            background: #0b0b16; 
-            border: 1px solid #252538; 
-            border-radius: 10px; 
-            padding: 10px; 
-            display: none; 
-            box-shadow: 0 18px 40px rgba(0,0,0,0.8); 
-            z-index: 10000; 
-        }
-        #start-menu.active { display: block; }
-        .menu-title { font-size: 12px; color:#888; margin:4px 2px 6px; text-transform:uppercase; letter-spacing:1px; }
-        .menu-item { padding: 8px 10px; font-size: 13px; border-radius: 6px; cursor: pointer; color: #ccc; display:flex; align-items:center; gap:6px; }
-        .menu-item:hover { background: #1e1e2f; color: #f15d22; }
-        #tray { display: flex; align-items: center; gap: 12px; font-size: 12px; color: #aaa; }
-        .gh-link { background: #24292e; color: white; text-decoration: none; padding: 4px 8px; border-radius: 4px; font-weight: bold; border: 1px solid #444; }
+        .taskbar-tab:hover { background: rgba(241,93,34,0.15); border-color: rgba(241,93,34,0.3); color: white; }
+        .taskbar-tab.active-tab { background: rgba(241,93,34,0.2); border-color: rgba(241,93,34,0.4); color: white; }
+        #tray { display: flex; align-items: center; gap: 10px; font-size: 12px; color: #aaa; flex-shrink: 0; }
+        .tray-icon { cursor: pointer; padding: 4px; border-radius: 4px; transition: all 0.15s; font-size: 16px; }
+        .tray-icon:hover { background: rgba(255,255,255,0.1); }
+        .clock-display { font-family: 'Ubuntu Mono', monospace; font-size: 13px; color: #ccc; cursor: default; text-align: right; line-height: 1.2; }
+        .clock-display span { display: block; font-size: 10px; color: #666; }
 
-        /* INFO VERSION LISTA */
-        .changelog-list { font-size: 12px; line-height: 1.5; color:#ddd; }
-        .changelog-list h4 { margin-top:8px; color:#f15d22; }
-        .changelog-list ul { margin-left:16px; margin-top:4px; }
-        .changelog-list li { margin-bottom:3px; }
+        /* START MENU */
+        #start-menu {
+            position: absolute;
+            bottom: 55px;
+            left: 14px;
+            width: 340px;
+            background: rgba(8,8,18,0.97);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 14px;
+            padding: 14px;
+            display: none;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.9), 0 0 0 1px rgba(255,255,255,0.03) inset;
+            z-index: 10000;
+            backdrop-filter: blur(20px);
+        }
+        #start-menu.active { display: block; animation: menuPop 0.15s ease; }
+        @keyframes menuPop { from { opacity:0; transform: translateY(8px) scale(0.97); } to { opacity:1; transform: translateY(0) scale(1); } }
+        .menu-search { width: 100%; background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.1); padding: 9px 14px; border-radius: 8px; color: white; font-size: 13px; outline: none; margin-bottom: 12px; }
+        .menu-search:focus { border-color: #f15d22; }
+        .menu-section-title { font-size: 10px; color: #555; margin: 8px 2px 5px; letter-spacing: 0.8px; text-transform: uppercase; }
+        .menu-item { padding: 8px 10px; font-size: 13px; border-radius: 8px; cursor: pointer; color: #ccc; display: flex; align-items: center; gap: 10px; transition: all 0.1s; }
+        .menu-item:hover { background: rgba(241,93,34,0.12); color: #fff; }
+        .menu-item .app-icon { font-size: 18px; width: 28px; text-align: center; }
+        .menu-footer { display: flex; gap: 6px; margin-top: 12px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.06); }
+
+        /* SCROLLBAR */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(241,93,34,0.4); border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(241,93,34,0.7); }
+
+        /* MODO CLARO */
+        body.light-mode { background: #f0f0f8; color: #111; }
+        body.light-mode #desktop { background: radial-gradient(circle at 15% 20%, #d8ccff 0%, transparent 45%), radial-gradient(circle at 85% 80%, #ffcba4 0%, transparent 50%), #eeeef8; }
+        body.light-mode .window { background: linear-gradient(145deg, #ffffff, #f5f5ff); border-color: rgba(200,180,255,0.4); }
+        body.light-mode .window-header { background: linear-gradient(90deg, #ececff, #e4e4f8); }
+        body.light-mode .window-body { background: #f8f8ff; color: #111; }
+        body.light-mode #taskbar { background: rgba(240,240,252,0.97); border-top-color: rgba(0,0,0,0.08); }
+        body.light-mode #start-menu { background: rgba(248,248,255,0.97); border-color: rgba(0,0,0,0.1); }
+        body.light-mode .menu-item { color: #333; }
+        body.light-mode .taskbar-tab { background: rgba(0,0,0,0.06); color: #333; }
+        body.light-mode .desktop-icon { background: rgba(255,255,255,0.5); }
+        body.light-mode .desktop-icon p { color: #222; text-shadow: 0 1px 2px rgba(255,255,255,0.8); }
+
+        /* CHANGELOG */
+        .changelog-item { display: flex; gap: 10px; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .changelog-item:last-child { border-bottom: none; }
+        .changelog-badge { font-size: 10px; padding: 2px 7px; border-radius: 4px; font-weight: 700; white-space: nowrap; align-self: flex-start; margin-top: 2px; }
+        .badge-new { background: rgba(39,201,63,0.2); color: #27c93f; }
+        .badge-fix { background: rgba(241,93,34,0.2); color: #f15d22; }
+        .badge-update { background: rgba(124,58,237,0.2); color: #a78bfa; }
+        .changelog-text { font-size: 12px; color: #ccc; line-height: 1.5; }
     </style>
 </head>
 <body>
 
-    <div id="notif-box"></div>
+<div id="notif-box"></div>
 
-    <div id="desktop">
-        <div id="icon-files" class="desktop-icon" style="top:20px; left:20px;" onmousedown="dragIcon(event, this, 'files-win', '📁')">
-            <span>📂</span><p data-es="Archivos" data-en="Files">Archivos</p>
-        </div>
-        <div id="icon-store" class="desktop-icon" style="top:140px; left:20px;" onmousedown="dragIcon(event, this, 'store-win', '🛍️')">
-            <span>🛍️</span><p data-es="Aura Store" data-en="Aura Store">Aura Store</p>
-        </div>
-        <div id="icon-config" class="desktop-icon" style="top:260px; left:20px;" onmousedown="dragIcon(event, this, 'config-win', '⚙️')">
-            <span>⚙️</span><p data-es="Ajustes" data-en="Settings">Ajustes</p>
-        </div>
-        <div id="icon-credits" class="desktop-icon" style="top:380px; left:20px;" onmousedown="dragIcon(event, this, 'credits-win', '📜')">
-            <span>📜</span><p data-es="Créditos" data-en="Credits">Créditos</p>
-        </div>
-        
-        <div id="desk-snake" class="desktop-icon" style="top:20px; left:140px; display:none;" onmousedown="dragIcon(event, this, 'snake-win', '🐍')">
-            <span>🐍</span><p>Snake Game</p>
-        </div>
-        <div id="desk-term" class="desktop-icon" style="top:140px; left:140px; display:none;" onmousedown="dragIcon(event, this, 'term-win', '💻')">
-            <span>💻</span><p>Terminal</p>
+<div id="desktop">
+    <div id="particles"></div>
+
+    <!-- ICONOS -->
+    <div id="icon-chronion" class="desktop-icon" style="top:20px;left:20px" onclick="openWin('chronion-win','🌐')">
+        <div class="ico">🌐</div><p>Chronioñ</p>
+    </div>
+    <div id="icon-files" class="desktop-icon" style="top:130px;left:20px" onclick="openWin('files-win','📁')">
+        <div class="ico">📂</div><p>Archivos</p>
+    </div>
+    <div id="icon-notepad" class="desktop-icon" style="top:240px;left:20px" onclick="openWin('notepad-win','📝')">
+        <div class="ico">📝</div><p>Bloc de notas</p>
+    </div>
+    <div id="icon-imgview" class="desktop-icon" style="top:350px;left:20px" onclick="openWin('imgview-win','🖼️')">
+        <div class="ico">🖼️</div><p>Visor imagen</p>
+    </div>
+    <div id="icon-store" class="desktop-icon" style="top:20px;left:130px" onclick="openWin('store-win','🛍️')">
+        <div class="ico">🛍️</div><p>Aura Store</p>
+    </div>
+    <div id="icon-config" class="desktop-icon" style="top:130px;left:130px" onclick="openWin('config-win','⚙️')">
+        <div class="ico">⚙️</div><p>Ajustes</p>
+    </div>
+    <div id="icon-info" class="desktop-icon" style="top:240px;left:130px" onclick="openWin('info-win','ℹ️')">
+        <div class="ico">ℹ️</div><p>Info v8.1</p>
+    </div>
+    <div id="icon-credits" class="desktop-icon" style="top:350px;left:130px" onclick="openWin('credits-win','📜')">
+        <div class="ico">📜</div><p>Créditos</p>
+    </div>
+    <!-- Instalables (ocultos hasta instalar) -->
+    <div id="desk-snake" class="desktop-icon" style="top:20px;left:240px;display:none" onclick="openWin('snake-win','🐍')">
+        <div class="ico">🐍</div><p>Snake</p>
+    </div>
+    <div id="desk-term" class="desktop-icon" style="top:130px;left:240px;display:none" onclick="openWin('term-win','💻')">
+        <div class="ico">💻</div><p>Terminal</p>
+    </div>
+    <div id="desk-calc" class="desktop-icon" style="top:240px;left:240px;display:none" onclick="openWin('calc-win','🧮')">
+        <div class="ico">🧮</div><p>Calculadora</p>
+    </div>
+</div>
+
+<!-- === VENTANAS === -->
+
+<!-- CHRONIOÑ BROWSER -->
+<div class="window" id="chronion-win" style="width:920px;height:620px">
+    <div class="window-header">
+        <span class="window-title">🌐 Chronioñ Browser v1.1</span>
+        <div class="window-controls">
+            <button class="win-btn win-min" onclick="minWin('chronion-win')"></button>
+            <button class="win-btn win-max" onclick="maxWin('chronion-win')"></button>
+            <button class="win-btn win-close" onclick="closeWin('chronion-win')"></button>
         </div>
     </div>
-
-    <!-- ARCHIVOS -->
-    <div class="window" id="files-win">
-        <div class="window-header">
-            <span class="window-title">📂 <span data-es="Archivos" data-en="Files">Archivos</span></span>
-            <div class="window-controls">
-                <button class="win-btn win-min" onclick="minWin('files-win')"></button>
-                <button class="win-btn win-max" onclick="maxWin('files-win')"></button>
-                <button class="win-btn win-close" onclick="closeWin('files-win')"></button>
-            </div>
+    <div class="browser-tabs" id="browser-tabs"></div>
+    <div class="browser-bar">
+        <button class="browser-nav-btn" onclick="navegarAtras()" title="Atrás">←</button>
+        <button class="browser-nav-btn" onclick="navegarAdelante()" title="Adelante">→</button>
+        <button class="browser-nav-btn" onclick="recargar()" title="Recargar">↻</button>
+        <div class="url-bar-wrap">
+            <span class="lock-icon">🔒</span>
+            <input type="text" id="browser-url" placeholder="Buscar o escribir URL..."
+                   onkeydown="if(event.key==='Enter')navegar()">
         </div>
-        <div class="window-body">
-            <div class="fm-toolbar">
-                <button class="btn" onclick="addFile('folder')">+ Carpeta</button>
-                <button class="btn" style="background:#27c93f;" onclick="addFile('file')">+ Archivo.txt</button>
-            </div>
-            <div class="fm-grid" id="fm-render"></div>
+        <button class="browser-nav-btn" onclick="navegar()">🔍</button>
+        <button class="browser-nav-btn" onclick="newTab()" title="Nueva pestaña">+</button>
+    </div>
+    <iframe id="chronion-frame" src="https://chronion-search.duckdns.org/"
+            sandbox="allow-same-origin allow-scripts allow-popups allow-forms allow-top-navigation">
+    </iframe>
+</div>
+
+<!-- ARCHIVOS -->
+<div class="window" id="files-win" style="width:600px;height:440px">
+    <div class="window-header">
+        <span class="window-title">📂 Archivos — <span id="fm-path-title">Inicio</span></span>
+        <div class="window-controls">
+            <button class="win-btn win-min" onclick="minWin('files-win')"></button>
+            <button class="win-btn win-max" onclick="maxWin('files-win')"></button>
+            <button class="win-btn win-close" onclick="closeWin('files-win')"></button>
         </div>
     </div>
-
-    <!-- AJUSTES -->
-    <div class="window" id="config-win" style="width:420px; height:270px;">
-        <div class="window-header">
-            <span class="window-title">⚙️ <span data-es="Ajustes" data-en="Settings">Ajustes</span></span>
-            <div class="window-controls">
-                <button class="win-btn win-close" onclick="closeWin('config-win')"></button>
-            </div>
+    <div class="window-body">
+        <div class="fm-toolbar">
+            <button class="btn" onclick="addFile('folder')">📁 Carpeta</button>
+            <button class="btn green" onclick="addFile('file')">📄 Archivo.txt</button>
+            <button class="btn secondary" onclick="addFile('img')">🖼️ Imagen</button>
         </div>
-        <div class="window-body" style="gap:10px;">
-            <h3>Idioma / Language</h3>
-            <div style="display:flex; gap:10px;">
-                <button class="btn" onclick="setLang('es')">Español 🇪🇸</button>
-                <button class="btn" style="background:#444;" onclick="setLang('en')">English 🇺🇸</button>
-            </div>
-            <h3 style="margin-top:15px;">Tema</h3>
-            <p style="font-size:12px; color:#aaa;">AuraOS v8.0 usa el tema "New Dawn" por defecto.</p>
+        <div class="fm-path">📍 Inicio / Documentos</div>
+        <div class="fm-grid" id="fm-render"></div>
+    </div>
+</div>
+
+<!-- BLOC DE NOTAS -->
+<div class="window" id="notepad-win" style="width:520px;height:420px">
+    <div class="window-header">
+        <span class="window-title">📝 Bloc de notas</span>
+        <div class="window-controls">
+            <button class="win-btn win-min" onclick="minWin('notepad-win')"></button>
+            <button class="win-btn win-max" onclick="maxWin('notepad-win')"></button>
+            <button class="win-btn win-close" onclick="closeWin('notepad-win')"></button>
         </div>
     </div>
-
-    <!-- AURA STORE -->
-    <div class="window" id="store-win" style="width:520px; height:360px;">
-        <div class="window-header">
-            <span class="window-title">🛍️ Aura Store</span>
-            <div class="window-controls">
-                <button class="win-btn win-close" onclick="closeWin('store-win')"></button>
-            </div>
+    <div class="window-body">
+        <div style="display:flex;gap:6px;flex-shrink:0">
+            <button class="btn secondary" onclick="saveNote()">💾 Guardar</button>
+            <button class="btn secondary" onclick="clearNote()">🗑️ Limpiar</button>
+            <span style="font-size:11px;color:#555;align-self:center;margin-left:auto" id="note-wc">0 palabras</span>
         </div>
-        <div class="window-body">
-            <div class="store-item">
-                <div>
-                    <strong>🐍 Snake Game</strong>
-                    <p style="font-size:11px; color:#888;">Juego clásico integrado.</p>
-                </div>
-                <button class="btn" id="ins-snake" onclick="install('snake')">Instalar</button>
-            </div>
-            <div class="store-item">
-                <div>
-                    <strong>💻 Bash Terminal</strong>
-                    <p style="font-size:11px; color:#888;">Línea de comandos AuraShell.</p>
-                </div>
-                <button class="btn" style="background:#27c93f;" id="ins-term" onclick="install('term')">Instalar</button>
-            </div>
+        <textarea id="notepad-text" placeholder="Escribe aquí..." oninput="countWords()"></textarea>
+    </div>
+</div>
+
+<!-- VISOR DE IMAGEN -->
+<div class="window" id="imgview-win" style="width:560px;height:460px">
+    <div class="window-header">
+        <span class="window-title">🖼️ Visor de imágenes</span>
+        <div class="window-controls">
+            <button class="win-btn win-min" onclick="minWin('imgview-win')"></button>
+            <button class="win-btn win-max" onclick="maxWin('imgview-win')"></button>
+            <button class="win-btn win-close" onclick="closeWin('imgview-win')"></button>
         </div>
     </div>
-
-    <!-- TERMINAL -->
-    <div class="window" id="term-win" style="width:560px; height:360px;">
-        <div class="window-header">
-            <span class="window-title">💻 Terminal</span>
-            <div class="window-controls">
-                <button class="win-btn win-close" onclick="closeWin('term-win')"></button>
-            </div>
+    <div class="window-body">
+        <div style="display:flex;gap:6px;flex-shrink:0">
+            <button class="btn" onclick="document.getElementById('img-upload').click()">📂 Abrir imagen</button>
+            <input type="file" id="img-upload" accept="image/*" style="display:none" onchange="loadImage(event)">
         </div>
-        <div class="window-body">
-            <div class="term-out" id="t-out">AuraOS Bash v8.0<br>Escribe 'help' para comandos.<br><br>aura@linux:~$ </div>
-            <div class="term-row">
-                <span>aura@linux:~$</span>
-                <input type="text" id="t-in" onkeydown="runCmd(event)">
-            </div>
+        <div id="img-viewer-display">
+            <div class="empty">📷<br>Abre una imagen para verla</div>
         </div>
     </div>
+</div>
 
-    <!-- SNAKE -->
-    <div class="window" id="snake-win" style="width:420px; height:480px;">
-        <div class="window-header">
-            <span class="window-title">🐍 Snake</span>
-            <div class="window-controls">
-                <button class="win-btn win-close" onclick="closeWin('snake-win')"></button>
+<!-- AJUSTES -->
+<div class="window" id="config-win" style="width:460px;height:400px">
+    <div class="window-header">
+        <span class="window-title">⚙️ Ajustes del sistema</span>
+        <div class="window-controls">
+            <button class="win-btn win-close" onclick="closeWin('config-win')"></button>
+        </div>
+    </div>
+    <div class="window-body" style="gap:12px">
+        <div class="settings-section">
+            <h4>Apariencia</h4>
+            <div class="setting-row">
+                <span>🌙 Modo oscuro</span>
+                <button class="toggle on" id="dark-toggle" onclick="toggleDark()"></button>
+            </div>
+            <div class="setting-row">
+                <span>✨ Partículas de fondo</span>
+                <button class="toggle on" id="particle-toggle" onclick="toggleParticles()"></button>
             </div>
         </div>
-        <div class="window-body" style="align-items:center;">
-            <canvas id="snake-canvas" width="340" height="340"></canvas>
-            <button class="btn" id="s-start" style="margin-top:10px;" onclick="startSnake()">Jugar</button>
+        <div class="settings-section">
+            <h4>Navegador</h4>
+            <div class="setting-row"><span>Motor de búsqueda</span><span style="color:#f15d22;font-size:12px">Chronioñ Search</span></div>
+            <div class="setting-row"><span>Página de inicio</span><span style="color:#888;font-size:12px">chronion-search.duckdns.org</span></div>
+        </div>
+        <div class="settings-section">
+            <h4>Sistema</h4>
+            <div class="setting-row"><span>Versión</span><span style="color:#aaa;font-size:12px">AuraOS Linux v8.1.0</span></div>
+            <div class="setting-row"><span>Kernel</span><span style="color:#aaa;font-size:12px">AuraEngine 2.1</span></div>
+        </div>
+        <button class="btn" style="background:#ff5f56;width:100%" onclick="if(confirm('¿Resetear AuraOS?')){localStorage.clear();location.reload();}">⚠️ Resetear sistema</button>
+    </div>
+</div>
+
+<!-- AURA STORE -->
+<div class="window" id="store-win" style="width:540px;height:440px">
+    <div class="window-header">
+        <span class="window-title">🛍️ Aura Store</span>
+        <div class="window-controls">
+            <button class="win-btn win-close" onclick="closeWin('store-win')"></button>
         </div>
     </div>
-
-    <!-- CRÉDITOS -->
-    <div class="window" id="credits-win" style="width:460px; height:290px;">
-        <div class="window-header">
-            <span class="window-title">📜 Créditos</span>
-            <div class="window-controls">
-                <button class="win-btn win-close" onclick="closeWin('credits-win')"></button>
+    <div class="window-body" style="gap:10px">
+        <div class="store-item">
+            <div class="store-item-info">
+                <div class="store-item-ico">🐍</div>
+                <div class="store-item-desc"><strong>Snake Game</strong><p>El clásico juego de la serpiente.</p></div>
             </div>
+            <button class="btn" id="ins-snake" onclick="install('snake')">Instalar</button>
         </div>
-        <div class="window-body" style="font-family:monospace; font-size:13px; gap:8px;">
-            <h3 style="color:#f15d22;">AuraOS Linux v8.0 "New Dawn"</h3>
-            <p>• <strong>Lead Dev:</strong> Angelo (c00lkidd_v2yt)</p>
-            <p>• <strong>AI Assistants:</strong> Copilot & Gemini</p>
-            <p>• <strong>Base:</strong> AuraOS v7.1 "Last Light"</p>
-            <p>Motor visual AuraEngine 2, barra v8 y sistema de ventanas mejorado.</p>
-        </div>
-    </div>
-
-    <!-- INFO VERSIÓN -->
-    <div class="window" id="info-win" style="width:520px; height:360px;">
-        <div class="window-header">
-            <span class="window-title">ℹ️ Info de versión</span>
-            <div class="window-controls">
-                <button class="win-btn win-close" onclick="closeWin('info-win')"></button>
+        <div class="store-item">
+            <div class="store-item-info">
+                <div class="store-item-ico">💻</div>
+                <div class="store-item-desc"><strong>Terminal AuraShell</strong><p>Línea de comandos del sistema.</p></div>
             </div>
+            <button class="btn green" id="ins-term" onclick="install('term')">Instalar</button>
         </div>
-        <div class="window-body" style="gap:10px; font-size:13px;">
-            <h3>AuraOS Linux v8.0 "New Dawn"</h3>
-            <p>Compilación: 2026.05.29</p>
-            <div class="changelog-list">
-                <h4>Últimas mejoras</h4>
-                <ul>
-                    <li>Nuevo motor visual AuraEngine 2.</li>
-                    <li>Ventanas rediseñadas con sombras dinámicas.</li>
-                    <li>Barra de tareas v8 con pestañas mejoradas.</li>
-                    <li>Sistema de notificaciones v2.</li>
-                    <li>Ventana "Info de versión" integrada.</li>
-                    <li>Mejoras de rendimiento en terminal y Snake.</li>
-                </ul>
-                <h4>Versiones anteriores</h4>
-                <ul>
-                    <li>v7.1 – "Last Light" (rama estable 7.x)</li>
-                    <li>v7.0 – "Ultra-Optimized"</li>
-                </ul>
-                <h4>Estado</h4>
-                <ul>
-                    <li>Canal: Estable</li>
-                    <li>Compatibilidad: Navegador moderno</li>
-                </ul>
+        <div class="store-item">
+            <div class="store-item-info">
+                <div class="store-item-ico">🧮</div>
+                <div class="store-item-desc"><strong>Calculadora</strong><p>Calculadora científica básica.</p></div>
             </div>
+            <button class="btn purple" id="ins-calc" onclick="install('calc')">Instalar</button>
+        </div>
+        <div class="store-item">
+            <div class="store-item-info">
+                <div class="store-item-ico">🌐</div>
+                <div class="store-item-desc"><strong>Chronioñ Search</strong><p>Motor de búsqueda integrado.</p></div>
+            </div>
+            <button class="btn" onclick="openWin('chronion-win','🌐')">Abrir</button>
         </div>
     </div>
+</div>
 
-    <!-- TASKBAR -->
-    <div id="taskbar">
-        <div id="start-btn" onclick="toggleMenu()">
-            <span class="logo"></span> <span>Aura</span>
-        </div>
-        <div id="apps-bar"></div>
-        <div id="tray">
-            <a class="gh-link" href="https://github.com/anyelo888ra-ux/auraoslinux/tree/main" target="_blank">🐙 GitHub</a>
-            <span id="clock">00:00</span>
+<!-- TERMINAL -->
+<div class="window" id="term-win" style="width:580px;height:400px">
+    <div class="window-header">
+        <span class="window-title">💻 Terminal — AuraShell v2.1</span>
+        <div class="window-controls">
+            <button class="win-btn win-close" onclick="closeWin('term-win')"></button>
         </div>
     </div>
-
-    <!-- START MENU -->
-    <div id="start-menu">
-        <div class="menu-title">Aplicaciones</div>
-        <div class="menu-item" onclick="openWin('files-win','📁');toggleMenu()">📂 Archivos</div>
-        <div class="menu-item" onclick="openWin('store-win','🛍️');toggleMenu()">🛍️ Aura Store</div>
-        <div class="menu-item" onclick="openWin('term-win','💻');toggleMenu()">💻 Terminal</div>
-        <div class="menu-item" onclick="openWin('snake-win','🐍');toggleMenu()">🐍 Snake</div>
-        <div class="menu-title">Sistema</div>
-        <div class="menu-item" onclick="openWin('config-win','⚙️');toggleMenu()">⚙️ Ajustes</div>
-        <div class="menu-item" onclick="openWin('info-win','ℹ️');toggleMenu()">ℹ️ Info de versión</div>
-        <div class="menu-item" onclick="openWin('credits-win','📜');toggleMenu()">📜 Créditos</div>
-        <hr style="border-color:#222; margin:6px 0;">
-        <div class="menu-item" style="color:#ff5f56;" onclick="localStorage.clear();location.reload();">🚨 Reset</div>
+    <div class="window-body">
+        <div class="term-out" id="t-out">AuraOS v8.1.0 — AuraShell 2.1<br>Escribe <span style="color:#f15d22">help</span> para ver comandos disponibles.<br><br></div>
+        <div class="term-row">
+            <span class="term-prompt">aura@linux:~$</span>
+            <input type="text" id="t-in" onkeydown="runCmd(event)" placeholder="escribe un comando...">
+        </div>
     </div>
+</div>
 
-    <script>
-        let lang = localStorage.getItem('a_lang') || 'es', openApps = [], winHist = {};
-        let files = JSON.parse(localStorage.getItem('a_files')) || [{id:1, type:'folder', name:'Documentos'}];
+<!-- SNAKE -->
+<div class="window" id="snake-win" style="width:420px;height:500px">
+    <div class="window-header">
+        <span class="window-title">🐍 Snake</span>
+        <div class="window-controls">
+            <button class="win-btn win-close" onclick="closeWin('snake-win')"></button>
+        </div>
+    </div>
+    <div class="window-body" style="align-items:center;justify-content:center">
+        <div class="snake-score">Puntuación: <span id="snake-score-display">0</span></div>
+        <canvas id="snake-canvas" width="360" height="360"></canvas>
+        <button class="btn" id="s-start" style="margin-top:12px" onclick="startSnake()">▶ Jugar</button>
+        <p style="font-size:11px;color:#555;margin-top:6px">Flechas del teclado para mover</p>
+    </div>
+</div>
 
-        const txt = {
-            es: { 
-                live: "AuraOS v8.0 en línea.", 
-                custom: "Nombre:", 
-                item: "Creado con éxito.", 
-                app: "Aura App instalada.", 
-                over: "Fin. Puntos: " 
-            },
-            en: { 
-                live: "AuraOS v8.0 online.", 
-                custom: "Name:", 
-                item: "Created successfully.", 
-                app: "App installed.", 
-                over: "Game Over. Score: " 
-            }
+<!-- CALCULADORA -->
+<div class="window" id="calc-win" style="width:280px;height:420px">
+    <div class="window-header">
+        <span class="window-title">🧮 Calculadora</span>
+        <div class="window-controls">
+            <button class="win-btn win-close" onclick="closeWin('calc-win')"></button>
+        </div>
+    </div>
+    <div class="window-body" style="padding:12px">
+        <div id="calc-display" style="background:#04040c;border:1px solid #1a1a2e;border-radius:6px;padding:12px;text-align:right;font-family:'Ubuntu Mono',monospace;font-size:22px;color:#00ff88;margin-bottom:10px;min-height:52px;word-break:break-all">0</div>
+        <div id="calc-expr" style="text-align:right;font-size:11px;color:#444;margin-bottom:8px;min-height:16px;font-family:'Ubuntu Mono',monospace"></div>
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px">
+            <button class="btn secondary" style="grid-column:span 2" onclick="calcOp('C')">C</button>
+            <button class="btn secondary" onclick="calcOp('⌫')">⌫</button>
+            <button class="btn" onclick="calcOp('/')">÷</button>
+            <button class="btn secondary" onclick="calcOp('7')">7</button>
+            <button class="btn secondary" onclick="calcOp('8')">8</button>
+            <button class="btn secondary" onclick="calcOp('9')">9</button>
+            <button class="btn" onclick="calcOp('*')">×</button>
+            <button class="btn secondary" onclick="calcOp('4')">4</button>
+            <button class="btn secondary" onclick="calcOp('5')">5</button>
+            <button class="btn secondary" onclick="calcOp('6')">6</button>
+            <button class="btn" onclick="calcOp('-')">−</button>
+            <button class="btn secondary" onclick="calcOp('1')">1</button>
+            <button class="btn secondary" onclick="calcOp('2')">2</button>
+            <button class="btn secondary" onclick="calcOp('3')">3</button>
+            <button class="btn" onclick="calcOp('+')">+</button>
+            <button class="btn secondary" style="grid-column:span 2" onclick="calcOp('0')">0</button>
+            <button class="btn secondary" onclick="calcOp('.')">.</button>
+            <button class="btn green" onclick="calcOp('=')">=</button>
+        </div>
+    </div>
+</div>
+
+<!-- INFO VERSIÓN -->
+<div class="window" id="info-win" style="width:520px;height:460px">
+    <div class="window-header">
+        <span class="window-title">ℹ️ AuraOS v8.1.0 — Novedades</span>
+        <div class="window-controls">
+            <button class="win-btn win-close" onclick="closeWin('info-win')"></button>
+        </div>
+    </div>
+    <div class="window-body" style="gap:8px">
+        <div style="display:flex;align-items:center;gap:12px;padding:12px;background:rgba(241,93,34,0.08);border-radius:8px;border:1px solid rgba(241,93,34,0.2)">
+            <div style="font-size:36px">🌅</div>
+            <div><strong style="font-size:15px;color:#f15d22">AuraOS Linux v8.1.0</strong><br><span style="font-size:12px;color:#888">"Chronioñ Dawn" — Compilación 2026.09.13</span></div>
+        </div>
+        <div class="changelog-item"><span class="changelog-badge badge-new">NUEVO</span><div class="changelog-text"><strong>Chronioñ Browser v1.1</strong> con pestañas múltiples, barra de URL mejorada y motor de búsqueda integrado.</div></div>
+        <div class="changelog-item"><span class="changelog-badge badge-new">NUEVO</span><div class="changelog-text"><strong>Bloc de notas</strong> con contador de palabras y guardado local.</div></div>
+        <div class="changelog-item"><span class="changelog-badge badge-new">NUEVO</span><div class="changelog-text"><strong>Visor de imágenes</strong> con soporte para abrir archivos locales.</div></div>
+        <div class="changelog-item"><span class="changelog-badge badge-new">NUEVO</span><div class="changelog-text"><strong>Calculadora</strong> disponible en Aura Store.</div></div>
+        <div class="changelog-item"><span class="changelog-badge badge-update">UPDATE</span><div class="changelog-text">Barra de tareas rediseñada con reloj y bandeja mejorados.</div></div>
+        <div class="changelog-item"><span class="changelog-badge badge-update">UPDATE</span><div class="changelog-text">Ajustes ampliados con toggle de partículas y modo oscuro/claro.</div></div>
+        <div class="changelog-item"><span class="changelog-badge badge-fix">FIX</span><div class="changelog-text">Función maxWin corregida — DeepSeek no pudo terminarlo, Claude sí. 😂</div></div>
+    </div>
+</div>
+
+<!-- CRÉDITOS -->
+<div class="window" id="credits-win" style="width:460px;height:320px">
+    <div class="window-header">
+        <span class="window-title">📜 Créditos</span>
+        <div class="window-controls">
+            <button class="win-btn win-close" onclick="closeWin('credits-win')"></button>
+        </div>
+    </div>
+    <div class="window-body" style="gap:10px">
+        <div style="text-align:center;padding:10px">
+            <div style="font-size:40px">🌅</div>
+            <h3 style="color:#f15d22;margin-top:8px">AuraOS Linux v8.1.0</h3>
+            <p style="font-size:12px;color:#888">"Chronioñ Dawn"</p>
+        </div>
+        <div style="background:rgba(255,255,255,0.03);border-radius:8px;padding:14px;font-size:13px;display:flex;flex-direction:column;gap:8px">
+            <div style="display:flex;justify-content:space-between"><span style="color:#888">Lead Dev</span><strong>Angelo (c00lkidd_v2yt)</strong></div>
+            <div style="display:flex;justify-content:space-between"><span style="color:#888">AI Assistants</span><strong>Claude & DeepSeek</strong></div>
+            <div style="display:flex;justify-content:space-between"><span style="color:#888">Navegador</span><strong>Chronioñ Browser v1.1</strong></div>
+            <div style="display:flex;justify-content:space-between"><span style="color:#888">Motor búsqueda</span><strong>Chronioñ Search</strong></div>
+            <div style="display:flex;justify-content:space-between"><span style="color:#888">Base</span><strong>AuraOS v8.0 "New Dawn"</strong></div>
+        </div>
+        <a href="https://github.com/anyelo888ra-ux/auraoslinux" target="_blank" class="btn" style="text-decoration:none;justify-content:center">🐙 Ver en GitHub</a>
+    </div>
+</div>
+
+<!-- TASKBAR -->
+<div id="taskbar">
+    <button id="start-btn" onclick="toggleMenu()">
+        <div class="aura-logo"></div>
+        <span>Aura</span>
+    </button>
+    <div id="apps-bar"></div>
+    <div id="tray">
+        <span class="tray-icon" title="WiFi">📶</span>
+        <span class="tray-icon" title="Volumen">🔊</span>
+        <span class="tray-icon" title="Batería">🔋</span>
+        <div class="clock-display" id="clock">
+            <div id="clock-time">00:00</div>
+            <span id="clock-date">Cargando...</span>
+        </div>
+    </div>
+</div>
+
+<!-- START MENU -->
+<div id="start-menu">
+    <input class="menu-search" placeholder="🔍 Buscar aplicaciones..." oninput="filterMenu(this.value)">
+    <div id="menu-apps">
+        <div class="menu-section-title">Aplicaciones</div>
+        <div class="menu-item" data-name="chronion browser" onclick="openWin('chronion-win','🌐');closeMenu()"><span class="app-icon">🌐</span> Chronioñ Browser</div>
+        <div class="menu-item" data-name="archivos files" onclick="openWin('files-win','📁');closeMenu()"><span class="app-icon">📂</span> Archivos</div>
+        <div class="menu-item" data-name="bloc notas notepad" onclick="openWin('notepad-win','📝');closeMenu()"><span class="app-icon">📝</span> Bloc de notas</div>
+        <div class="menu-item" data-name="visor imagen" onclick="openWin('imgview-win','🖼️');closeMenu()"><span class="app-icon">🖼️</span> Visor de imagen</div>
+        <div class="menu-item" data-name="store tienda" onclick="openWin('store-win','🛍️');closeMenu()"><span class="app-icon">🛍️</span> Aura Store</div>
+        <div class="menu-item" data-name="snake juego game" onclick="openWin('snake-win','🐍');closeMenu()"><span class="app-icon">🐍</span> Snake Game</div>
+        <div class="menu-item" data-name="terminal bash" onclick="openWin('term-win','💻');closeMenu()"><span class="app-icon">💻</span> Terminal</div>
+        <div class="menu-item" data-name="calculadora calc" onclick="openWin('calc-win','🧮');closeMenu()"><span class="app-icon">🧮</span> Calculadora</div>
+        <div class="menu-section-title">Sistema</div>
+        <div class="menu-item" data-name="ajustes settings" onclick="openWin('config-win','⚙️');closeMenu()"><span class="app-icon">⚙️</span> Ajustes</div>
+        <div class="menu-item" data-name="info version" onclick="openWin('info-win','ℹ️');closeMenu()"><span class="app-icon">ℹ️</span> Info de versión</div>
+        <div class="menu-item" data-name="creditos" onclick="openWin('credits-win','📜');closeMenu()"><span class="app-icon">📜</span> Créditos</div>
+    </div>
+    <div class="menu-footer">
+        <button class="btn secondary" style="flex:1;justify-content:center" onclick="localStorage.clear();location.reload()">⚠️ Reset</button>
+        <a class="btn" style="flex:1;justify-content:center;text-decoration:none" href="https://github.com/anyelo888ra-ux/auraoslinux" target="_blank">🐙 GitHub</a>
+    </div>
+</div>
+
+<script>
+// === ESTADO GLOBAL ===
+let openApps = [], winHist = {}, focusedWin = null;
+let files = JSON.parse(localStorage.getItem('a_files') || '[{"id":1,"type":"folder","name":"Documentos"},{"id":2,"type":"file","name":"readme.txt"},{"id":3,"type":"img","name":"wallpaper.png"}]');
+let noteContent = localStorage.getItem('a_note') || '';
+let darkMode = localStorage.getItem('a_dark') !== 'false';
+let particlesOn = localStorage.getItem('a_particles') !== 'false';
+
+// Browser tabs
+let tabs = [{url:'https://chronion-search.duckdns.org/', title:'🌐 Chronioñ Search'}];
+let activeTab = 0;
+
+// Calculadora
+let calcStr = '0', calcExpr = '';
+
+// Snake
+let snakeRunning = false, snakeInterval = null;
+let snake, food, dx, dy, score;
+
+// === INIT ===
+window.onload = () => {
+    initParticles();
+    updateTime();
+    setInterval(updateTime, 1000);
+    renderFiles();
+    renderBrowserTabs();
+    applyTheme();
+    loadNote();
+
+    // Restaurar apps instaladas
+    ['snake','term','calc'].forEach(a => {
+        if(localStorage.getItem('a_'+a) === 'true') {
+            let el = document.getElementById('desk-'+a);
+            if(el) el.style.display = 'flex';
+            let btn = document.getElementById('ins-'+a);
+            if(btn) { btn.textContent = '✓ Instalado'; btn.disabled = true; btn.style.background = '#333'; }
+        }
+    });
+
+    initWindowDrag();
+    initIconDrag();
+
+    if(!darkMode) { document.getElementById('dark-toggle').classList.remove('on'); }
+    if(!particlesOn) { document.getElementById('particle-toggle').classList.remove('on'); document.getElementById('particles').style.display='none'; }
+
+    showNotif('🌅 AuraOS v8.1.0 "Chronioñ Dawn" cargado');
+};
+
+// === TIEMPO ===
+function updateTime() {
+    const d = new Date();
+    const h = String(d.getHours()).padStart(2,'0');
+    const m = String(d.getMinutes()).padStart(2,'0');
+    const days = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+    const months = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+    document.getElementById('clock-time').textContent = `${h}:${m}`;
+    document.getElementById('clock-date').textContent = `${days[d.getDay()]} ${d.getDate()} ${months[d.getMonth()]}`;
+}
+
+// === NOTIFICACIONES ===
+function showNotif(text, icon='') {
+    const box = document.getElementById('notif-box');
+    const n = document.createElement('div');
+    n.className = 'notif';
+    n.textContent = text;
+    box.appendChild(n);
+    setTimeout(() => n.remove(), 3200);
+}
+
+// === PARTÍCULAS ===
+function initParticles() {
+    if(!particlesOn) return;
+    const container = document.getElementById('particles');
+    const colors = ['#f15d22','#7c3aed','#3b82f6','#27c93f','#ffbd2e'];
+    for(let i = 0; i < 15; i++) {
+        const p = document.createElement('div');
+        p.className = 'particle';
+        const size = Math.random()*6+2;
+        p.style.cssText = `width:${size}px;height:${size}px;background:${colors[Math.floor(Math.random()*colors.length)]};left:${Math.random()*100}%;animation-duration:${Math.random()*20+15}s;animation-delay:${Math.random()*15}s;`;
+        container.appendChild(p);
+    }
+}
+
+// === MENÚ INICIO ===
+function toggleMenu() { document.getElementById('start-menu').classList.toggle('active'); }
+function closeMenu() { document.getElementById('start-menu').classList.remove('active'); }
+document.addEventListener('click', e => {
+    if(!e.target.closest('#start-menu') && !e.target.closest('#start-btn')) closeMenu();
+});
+
+function filterMenu(q) {
+    document.querySelectorAll('#menu-apps .menu-item').forEach(item => {
+        const name = item.dataset.name || '';
+        item.style.display = name.includes(q.toLowerCase()) || !q ? 'flex' : 'none';
+    });
+}
+
+// === VENTANAS ===
+function openWin(id, icon) {
+    const w = document.getElementById(id);
+    if(!w) return;
+    w.style.display = 'flex';
+    focusWin(id);
+    if(!w.style.top || w.style.top === '0px') {
+        w.style.top = (60 + Math.random()*60) + 'px';
+        w.style.left = (100 + Math.random()*80) + 'px';
+    }
+    if(!openApps.find(a => a.id === id)) {
+        openApps.push({id, icon});
+        renderTaskbarTabs();
+    }
+}
+
+function closeWin(id) {
+    const w = document.getElementById(id);
+    if(w) w.style.display = 'none';
+    openApps = openApps.filter(a => a.id !== id);
+    renderTaskbarTabs();
+}
+
+function minWin(id) {
+    const w = document.getElementById(id);
+    if(w) { w.style.display = 'none'; }
+    const tab = document.querySelector(`.taskbar-tab[data-id="${id}"]`);
+    if(tab) tab.classList.remove('active-tab');
+}
+
+function maxWin(id) {
+    const w = document.getElementById(id);
+    if(!w) return;
+    if(w.dataset.maximized === '1') {
+        const h = winHist[id];
+        if(h) { w.style.width=h.w; w.style.height=h.h; w.style.top=h.t; w.style.left=h.l; }
+        w.dataset.maximized = '0';
+    } else {
+        winHist[id] = {w:w.style.width||w.offsetWidth+'px', h:w.style.height||w.offsetHeight+'px', t:w.style.top, l:w.style.left};
+        w.style.width='100%'; w.style.height='calc(100vh - 48px)'; w.style.top='0'; w.style.left='0';
+        w.dataset.maximized = '1';
+    }
+}
+
+function focusWin(id) {
+    document.querySelectorAll('.window').forEach(w => { w.style.zIndex=500; w.classList.remove('focused'); });
+    const w = document.getElementById(id);
+    if(w) { w.style.zIndex=1000; w.classList.add('focused'); }
+    focusedWin = id;
+    document.querySelectorAll('.taskbar-tab').forEach(t => t.classList.remove('active-tab'));
+    const tab = document.querySelector(`.taskbar-tab[data-id="${id}"]`);
+    if(tab) tab.classList.add('active-tab');
+}
+
+function renderTaskbarTabs() {
+    const bar = document.getElementById('apps-bar');
+    bar.innerHTML = '';
+    openApps.forEach(a => {
+        const t = document.createElement('div');
+        t.className = 'taskbar-tab' + (focusedWin === a.id ? ' active-tab' : '');
+        t.dataset.id = a.id;
+        t.textContent = a.icon + ' ' + a.id.replace('-win','').toUpperCase();
+        t.onclick = () => {
+            const w = document.getElementById(a.id);
+            if(!w) return;
+            if(w.style.display === 'none') { w.style.display='flex'; focusWin(a.id); }
+            else if(focusedWin === a.id) { w.style.display='none'; }
+            else { focusWin(a.id); }
         };
+        bar.appendChild(t);
+    });
+}
 
-        window.onload = () => {
-            initDragAndDrop(); updateTime(); setInterval(updateTime, 1000); setLang(lang); renderFiles();
-            document.addEventListener('keydown', changeDir);
-            ['snake', 'term'].forEach(a => {
-                if(localStorage.getItem(`a_${a}`) === 'true') {
-                    document.getElementById(`desk-${a}`).style.display = 'flex';
-                    let b = document.getElementById(`ins-${a}`); if(b) { b.innerText="OK"; b.style.background="#333"; b.disabled=true; }
-                }
-            });
-            showNotif(txt[lang].live);
-        };
+// === DRAG VENTANAS ===
+function initWindowDrag() {
+    document.querySelectorAll('.window').forEach(win => {
+        const header = win.querySelector('.window-header');
+        if(!header) return;
+        header.addEventListener('mousedown', e => {
+            if(e.target.classList.contains('win-btn')) return;
+            focusWin(win.id);
+            const startX = e.clientX - win.offsetLeft;
+            const startY = e.clientY - win.offsetTop;
+            const move = me => {
+                win.style.left = (me.clientX - startX) + 'px';
+                win.style.top = Math.max(0, me.clientY - startY) + 'px';
+            };
+            const up = () => { document.removeEventListener('mousemove',move); document.removeEventListener('mouseup',up); };
+            document.addEventListener('mousemove', move);
+            document.addEventListener('mouseup', up);
+        });
+        win.addEventListener('mousedown', () => focusWin(win.id));
+    });
+}
 
-        function showNotif(t) {
-            let b = document.getElementById('notif-box'), n = document.createElement('div');
-            n.className = 'notif'; n.innerText = t; b.appendChild(n); setTimeout(() => n.remove(), 3000);
-        }
+// === DRAG ICONOS ===
+function initIconDrag() {
+    document.querySelectorAll('.desktop-icon').forEach(el => {
+        const saved_l = localStorage.getItem(el.id+'_l');
+        const saved_t = localStorage.getItem(el.id+'_t');
+        if(saved_l) { el.style.left=saved_l; el.style.top=saved_t; }
 
-        function updateTime() {
-            let d = new Date(), h = d.getHours(), m = d.getMinutes();
-            document.getElementById('clock').innerText = `${h<10?'0':''}${h}:${m<10?'0':''}${m}`;
-        }
+        let startX, startY, iL, iT, moved=false;
+        el.addEventListener('mousedown', e => {
+            startX=e.clientX; startY=e.clientY; iL=el.offsetLeft; iT=el.offsetTop; moved=false;
+            const move = me => {
+                const dX=me.clientX-startX, dY=me.clientY-startY;
+                if(Math.abs(dX)>5||Math.abs(dY)>5) moved=true;
+                if(moved) { el.style.left=Math.max(0,iL+dX)+'px'; el.style.top=Math.max(0,iT+dY)+'px'; }
+            };
+            const up = () => {
+                document.removeEventListener('mousemove',move);
+                document.removeEventListener('mouseup',up);
+                if(moved) { localStorage.setItem(el.id+'_l',el.style.left); localStorage.setItem(el.id+'_t',el.style.top); }
+            };
+            document.addEventListener('mousemove',move);
+            document.addEventListener('mouseup',up);
+        });
+    });
+}
 
-        function toggleMenu() { document.getElementById('start-menu').classList.toggle('active'); }
+// === BROWSER ===
+function renderBrowserTabs() {
+    const bar = document.getElementById('browser-tabs');
+    bar.innerHTML = '';
+    tabs.forEach((tab, i) => {
+        const t = document.createElement('div');
+        t.className = 'browser-tab' + (i===activeTab?' active':'');
+        t.innerHTML = `<span style="overflow:hidden;text-overflow:ellipsis;max-width:120px">${tab.title}</span><span class="tab-close" onclick="closeTab(${i},event)">×</span>`;
+        t.onclick = () => switchTab(i);
+        bar.appendChild(t);
+    });
+    const newBtn = document.createElement('button');
+    newBtn.className = 'new-tab-btn';
+    newBtn.textContent = '+';
+    newBtn.onclick = newTab;
+    bar.appendChild(newBtn);
+}
 
-        function setLang(l) {
-            lang = l; localStorage.setItem('a_lang', l);
-            document.querySelectorAll('[data-es]').forEach(e => e.innerText = e.getAttribute(`data-${l}`));
-        }
+function navegar() {
+    let url = document.getElementById('browser-url').value.trim();
+    if(!url) return;
+    if(!url.startsWith('http://') && !url.startsWith('https://')) {
+        if(url.includes('.') && !url.includes(' ')) url = 'https://'+url;
+        else url = 'https://chronion-search.duckdns.org/?q='+encodeURIComponent(url);
+    }
+    document.getElementById('chronion-frame').src = url;
+    document.getElementById('browser-url').value = url;
+    tabs[activeTab] = {url, title:'🌐 '+url.split('/')[2]};
+    renderBrowserTabs();
+}
 
-        /* VENTANAS */
-        function openWin(id, icon) {
-            let w = document.getElementById(id); if(!w) return;
-            w.style.display = 'flex'; document.querySelectorAll('.window').forEach(win => win.style.zIndex = 500);
-            w.style.zIndex = 1000;
-            if(!w.style.top || w.style.top === '0px') { w.style.top = '15%'; w.style.left = '20%'; }
-            if(!openApps.some(a => a.id === id)) { openApps.push({id, icon}); renderTabs(); }
-        }
+function navegarAtras() { try { document.getElementById('chronion-frame').contentWindow.history.back(); } catch(e){} }
+function navegarAdelante() { try { document.getElementById('chronion-frame').contentWindow.history.forward(); } catch(e){} }
+function recargar() { const f=document.getElementById('chronion-frame'); f.src=f.src; }
 
-        function closeWin(id) { document.getElementById(id).style.display = 'none'; openApps = openApps.filter(a => a.id !== id); renderTabs(); }
-        function minWin(id) { document.getElementById(id).style.display = 'none'; }
-        function maxWin(id) {
-            let w = document.getElementById(id);
-            if(w.style.width === '100%') {
-                let o = winHist[id] || {w:'660px', h:'460px', t:'15%', l:'20%'};
-                w.style.width = o.w; w.style.height = o.h; w.style.top = o.t; w.style.left = o.l;
-            } else {
-                winHist[id] = {w:w.style.width, h:w.style.height, t:w.style.top, l:w.style.left};
-                w.style.width = '100%'; w.style.height = 'calc(100vh - 48px)'; w.style.top = '0'; w.style.left = '0';
-            }
-        }
+function newTab() {
+    tabs.push({url:'https://chronion-search.duckdns.org/', title:'🌐 Nueva pestaña'});
+    activeTab = tabs.length-1;
+    document.getElementById('chronion-frame').src = tabs[activeTab].url;
+    document.getElementById('browser-url').value = tabs[activeTab].url;
+    renderBrowserTabs();
+}
 
-        function renderTabs() {
-            let b = document.getElementById('apps-bar'); b.innerHTML = '';
-            openApps.forEach(a => {
-                let t = document.createElement('div'); t.className = 'tab'; t.innerText = `${a.icon} ${a.id.split('-')[0].toUpperCase()}`;
-                t.onclick = () => { 
-                    let w = document.getElementById(a.id); 
-                    if(w.style.display === 'none') { w.style.display = 'flex'; w.style.zIndex = 1000; }
-                    else { w.style.display = 'none'; }
-                };
-                b.appendChild(t);
-            });
-        }
+function switchTab(i) {
+    activeTab = i;
+    document.getElementById('chronion-frame').src = tabs[i].url;
+    document.getElementById('browser-url').value = tabs[i].url;
+    renderBrowserTabs();
+}
 
-        /* DRAG ICONS & WINDOWS */
-        function dragIcon(e, el, winId, icon) {
-            if (window._dragActive) return; window._dragActive = true;
-            let sX = e.clientX, sY = e.clientY, iL = el.offsetLeft, iT = el.offsetTop, moved = false;
+function closeTab(i, e) {
+    e.stopPropagation();
+    if(tabs.length === 1) { tabs[0]={url:'https://chronion-search.duckdns.org/',title:'🌐 Chronioñ Search'}; switchTab(0); return; }
+    tabs.splice(i,1);
+    activeTab = Math.min(activeTab, tabs.length-1);
+    switchTab(activeTab);
+}
 
-            function move(me) {
-                let dX = me.clientX - sX, dY = me.clientY - sY;
-                if (Math.abs(dX) > 8 || Math.abs(dY) > 8) moved = true;
-                if (moved) {
-                    let x = iL + dX, y = iT + dY;
-                    let mX = document.getElementById('desktop').clientWidth - el.clientWidth;
-                    let mY = document.getElementById('desktop').clientHeight - el.clientHeight;
-                    el.style.left = Math.max(0, Math.min(x, mX)) + 'px';
-                    el.style.top = Math.max(0, Math.min(y, mY)) + 'px';
-                }
-            }
-            function up() {
-                document.removeEventListener('mousemove', move); document.removeEventListener('mouseup', up);
-                window._dragActive = false;
-                if (!moved) openWin(winId, icon);
-                else { localStorage.setItem(el.id+'_l', el.style.left); localStorage.setItem(el.id+'_t', el.style.top); }
-            }
-            document.addEventListener('mousemove', move); document.addEventListener('mouseup', up);
-        }
+// === ARCHIVOS ===
+function renderFiles() {
+    const grid = document.getElementById('fm-render');
+    if(!grid) return;
+    grid.innerHTML = '';
+    files.forEach(f => {
+        const d = document.createElement('div');
+        d.className = 'fm-item';
+        const ico = f.type==='folder'?'📁':f.type==='img'?'🖼️':'📄';
+        d.innerHTML = `<div class="ico">${ico}</div><p>${f.name}</p><button class="fm-del" onclick="delFile(${f.id},event)">✕</button>`;
+        if(f.type==='img') d.ondblclick = () => { openWin('imgview-win','🖼️'); };
+        grid.appendChild(d);
+    });
+}
 
-        function initDragAndDrop() {
-            document.querySelectorAll('.desktop-icon').forEach(el => {
-                if(localStorage.getItem(el.id+'_l')) { el.style.left = localStorage.getItem(el.id+'_l'); el.style.top = localStorage.getItem(el.id+'_t'); }
-            });
-            document.querySelectorAll('.window').forEach(w => {
-                let h = w.querySelector('.window-header'); if(!h) return;
-                h.onmousedown = (e) => {
-                    if(e.target.classList.contains('win-btn')) return;
-                    let iX = e.clientX - w.offsetLeft, iY = e.clientY - w.offsetTop;
-                    document.onmousemove = (me) => { w.style.left = (me.clientX - iX)+'px'; w.style.top = (me.clientY - iY)+'px'; };
-                    document.onmouseup = () => document.onmousemove = document.onmouseup = null;
-                };
-            });
-        }
+function addFile(type) {
+    const n = prompt('Nombre:');
+    if(!n) return;
+    let name = n;
+    if(type==='file' && !n.includes('.')) name = n+'.txt';
+    if(type==='img' && !n.includes('.')) name = n+'.png';
+    files.push({id:Date.now(), type, name});
+    localStorage.setItem('a_files', JSON.stringify(files));
+    renderFiles();
+    showNotif('✅ "'+name+'" creado');
+}
 
-        /* FILE MANAGER */
-        function renderFiles() {
-            let b = document.getElementById('fm-render'); if(!b) return; b.innerHTML = '';
-            files.forEach(f => {
-                let d = document.createElement('div'); d.className = 'fm-item';
-                d.innerHTML = `<span>${f.type==='folder'?'📁':'📄'}</span><p>${f.name}</p><button class="fm-del" onclick="delFile(${f.id});event.stopPropagation()">X</button>`;
-                b.appendChild(d);
-            });
-        }
-        function addFile(t) {
-            let n = prompt(txt[lang].custom);
-            if(n) { files.push({id:Date.now(), type:t, name: t==='file'&&!n.endsWith('.txt')?n+'.txt':n}); localStorage.setItem('a_files', JSON.stringify(files)); renderFiles(); showNotif(txt[lang].item); }
-        }
-        function delFile(id) { files = files.filter(f => f.id !== id); localStorage.setItem('a_files', JSON.stringify(files)); renderFiles(); }
+function delFile(id, e) {
+    e.stopPropagation();
+    files = files.filter(f => f.id !== id);
+    localStorage.setItem('a_files', JSON.stringify(files));
+    renderFiles();
+}
 
-        function install(a) {
-            document.getElementById(`desk-${a}`).style.display = 'flex'; localStorage.setItem(`a_${a}`, 'true');
-            let b = document.getElementById(`ins-${a}`); b.innerText="OK"; b.style.background="#333"; b.disabled=true; showNotif(txt[lang].app);
-        }
+// === BLOC DE NOTAS ===
+function loadNote() {
+    document.getElementById('notepad-text').value = noteContent;
+    countWords();
+}
 
-        /* TERMINAL BASH v8 */
-        function runCmd(e) {
-            if(e.key !== 'Enter') return;
-            let i = document.getElementById('t-in'), o = document.getElementById('t-out'), c = i.value.trim().toLowerCase(); if(!c) return;
-            let r = `<br><span style="color:#fff;">> ${c}</span><br>`;
-            if(c === 'help') r += "Comandos: neofetch, ls, clear, help, about, info";
-            else if(c === 'neofetch') r += "<span style='color:#f15d22;'> /\\_/\\ </span> <b>AuraOS New Dawn</b><br> Kernel: StableJS v8<br> Dev: Angelo";
-            else if(c === 'ls') files.forEach(f => r += `${f.type==='folder'?'📁':'📄'} ${f.name} `);
-            else if(c === 'clear') { o.innerHTML = "aura@linux:~$ "; i.value = ''; return; }
-            else if(c === 'about' || c === 'info') r += "AuraOS Linux v8.0 'New Dawn'<br>Basado en AuraOS v7.1 'Last Light'<br>Escritorio HTML simulado.";
-            else r += `bash: comando no encontrado: ${c}`;
-            o.innerHTML += r + "<br><br>aura@linux:~$ "; i.value = ''; o.scrollTop = o.scrollHeight; i.value = '';
-        }
+function saveNote() {
+    noteContent = document.getElementById('notepad-text').value;
+    localStorage.setItem('a_note', noteContent);
+    showNotif('💾 Nota guardada');
+}
 
-        /* SNAKE */
-        let cv, cx, sn, fd, dx, dy, sc, sInt, sRun = false;
-        function startSnake() {
-            if(sRun) return; sRun = true; document.getElementById('s-start').disabled = true;
-            cv = document.getElementById('snake-canvas'); cx = cv.getContext('2d');
-            sn = [{x:160,y:160},{x:140,y:160}]; dx = 20; dy = 0; sc = 0; spawnFood(); clearInterval(sInt); sInt = setInterval(tick, 140);
-        }
-        function tick() {
-            let h = {x: sn[0].x + dx, y: sn[0].y + dy}; sn.unshift(h);
-            if(h.x === fd.x && h.y === fd.y) { sc += 10; spawnFood(); } else sn.pop();
-            if(h.x < 0 || h.x >= cv.width || h.y < 0 || h.y >= cv.height || sn.slice(1).some(p => p.x===h.x && p.y===h.y)) {
-                clearInterval(sInt); showNotif(txt[lang].over + sc); sRun = false; document.getElementById('s-start').disabled = false;
-            }
-            cx.clearRect(0,0,cv.width,cv.height); cx.fillStyle='#ff5f56'; cx.fillRect(fd.x,fd.y,18,18);
-            cx.fillStyle='#27c93f'; sn.forEach(p => cx.fillRect(p.x,p.y,18,18));
-        }
-        function spawnFood() { fd = { x: Math.floor(Math.random()*(cv.width/20))*20, y: Math.floor(Math.random()*(cv.height/20))*20 }; }
-        function changeDir(e) {
-            if(!sRun) return;
-            if(e.key === 'ArrowLeft' && dx === 0) { dx = -20; dy = 0; }
-            if(e.key === 'ArrowUp' && dy === 0) { dx = 0; dy = -20; }
-            if(e.key === 'ArrowRight' && dx === 0) { dx = 20; dy = 0; }
-            if(e.key === 'ArrowDown' && dy === 0) { dx = 0; dy = 20; }
-        }
+function clearNote() {
+    if(confirm('¿Limpiar el bloc de notas?')) {
+        document.getElementById('notepad-text').value = '';
+        countWords();
+    }
+}
 
-        console.log("AuraOS v8.0 listo. 'New Dawn' cargado.");
-    </script>
+function countWords() {
+    const text = document.getElementById('notepad-text').value.trim();
+    const words = text ? text.split(/\s+/).length : 0;
+    const chars = text.length;
+    document.getElementById('note-wc').textContent = `${words} palabras · ${chars} caracteres`;
+}
+
+// === VISOR DE IMAGEN ===
+function loadImage(e) {
+    const file = e.target.files[0];
+    if(!file) return;
+    const reader = new FileReader();
+    reader.onload = ev => {
+        const display = document.getElementById('img-viewer-display');
+        display.innerHTML = `<img src="${ev.target.result}" alt="${file.name}">`;
+    };
+    reader.readAsDataURL(file);
+}
+
+// === AJUSTES ===
+function applyTheme() {
+    if(!darkMode) document.body.classList.add('light-mode');
+}
+
+function toggleDark() {
+    darkMode = !darkMode;
+    localStorage.setItem('a_dark', darkMode);
+    document.body.classList.toggle('light-mode', !darkMode);
+    document.getElementById('dark-toggle').classList.toggle('on', darkMode);
+    showNotif(darkMode ? '🌙 Modo oscuro activado' : '☀️ Modo claro activado');
+}
+
+function toggleParticles() {
+    particlesOn = !particlesOn;
+    localStorage.setItem('a_particles', particlesOn);
+    document.getElementById('particle-toggle').classList.toggle('on', particlesOn);
+    document.getElementById('particles').style.display = particlesOn ? 'block' : 'none';
+}
+
+// === STORE / INSTALAR ===
+function install(app) {
+    localStorage.setItem('a_'+app, 'true');
+    const el = document.getElementById('desk-'+app);
+    if(el) el.style.display = 'flex';
+    const btn = document.getElementById('ins-'+app);
+    if(btn) { btn.textContent = '✓ Instalado'; btn.disabled = true; btn.style.background='#333'; }
+    showNotif('✅ Instalado correctamente');
+}
+
+// === TERMINAL ===
+const termHistory = [];
+let termIdx = -1;
+
+function runCmd(e) {
+    if(e.key === 'ArrowUp') { if(termHistory.length) { termIdx=Math.max(0,termIdx-1); document.getElementById('t-in').value=termHistory[termIdx]||''; } return; }
+    if(e.key === 'ArrowDown') { termIdx=Math.min(termHistory.length,termIdx+1); document.getElementById('t-in').value=termHistory[termIdx]||''; return; }
+    if(e.key !== 'Enter') return;
+
+    const input = document.getElementById('t-in');
+    const out = document.getElementById('t-out');
+    const cmd = input.value.trim().toLowerCase();
+    if(!cmd) return;
+
+    termHistory.push(cmd);
+    termIdx = termHistory.length;
+
+    let resp = `<span style="color:#fff;font-weight:bold">$ ${cmd}</span><br>`;
+
+    if(cmd === 'help') {
+        resp += `<span style="color:#f15d22">Comandos disponibles:</span><br>neofetch, ls, pwd, date, clear, echo [texto], whoami, uname, history, about, open [app]`;
+    } else if(cmd === 'neofetch') {
+        resp += `<span style="color:#f15d22">
+  /\\_____/\\
+ ( o   o  )   <b>AuraOS Linux v8.1.0</b>
+ (  =^=   )   Chronioñ Dawn
+  )       (   ---------------
+ (_________)  OS: AuraOS v8.1.0 (Chronioñ Dawn)
+              Kernel: AuraEngine 2.1
+              Shell: AuraShell 2.1
+              Dev: Angelo (c00lkidd_v2yt)
+              AI: Claude + DeepSeek</span>`;
+    } else if(cmd === 'ls') {
+        resp += files.map(f=>`${f.type==='folder'?'<span style="color:#3b82f6">📁':f.type==='img'?'<span style="color:#a78bfa">🖼️':'<span style="color:#00ff88">📄'} ${f.name}</span>`).join('  ');
+    } else if(cmd === 'pwd') {
+        resp += `/home/aura/Documentos`;
+    } else if(cmd === 'whoami') {
+        resp += `aura (c00lkidd_v2yt)`;
+    } else if(cmd === 'date') {
+        resp += new Date().toLocaleString('es');
+    } else if(cmd === 'uname') {
+        resp += `AuraOS v8.1.0 AuraEngine2.1 x86_64`;
+    } else if(cmd === 'history') {
+        resp += termHistory.slice(-10).map((c,i)=>`${i+1}. ${c}`).join('<br>');
+    } else if(cmd === 'about') {
+        resp += `AuraOS Linux v8.1.0 "Chronioñ Dawn"<br>Escritorio HTML simulado. Dev: Angelo`;
+    } else if(cmd === 'clear') {
+        out.innerHTML = '';
+        input.value = '';
+        return;
+    } else if(cmd.startsWith('echo ')) {
+        resp += cmd.substring(5);
+    } else if(cmd.startsWith('open ')) {
+        const apps = {'browser':'chronion-win','archivos':'files-win','store':'store-win','snake':'snake-win','calc':'calc-win'};
+        const key = cmd.split(' ')[1];
+        if(apps[key]) { openWin(apps[key],'🚀'); resp += `Abriendo ${key}...`; }
+        else resp += `<span style="color:#ff5f56">No encontrado: ${key}</span><br>Apps: browser, archivos, store, snake, calc`;
+    } else {
+        resp += `<span style="color:#ff5f56">bash: ${cmd}: comando no encontrado. Escribe 'help'.</span>`;
+    }
+
+    out.innerHTML += resp + '<br><br>';
+    input.value = '';
+    out.scrollTop = out.scrollHeight;
+}
+
+// === SNAKE ===
+function startSnake() {
+    if(snakeRunning) return;
+    snakeRunning = true;
+    document.getElementById('s-start').disabled = true;
+    const canvas = document.getElementById('snake-canvas');
+    const ctx = canvas.getContext('2d');
+    snake = [{x:180,y:180},{x:160,y:180}];
+    dx=20; dy=0; score=0;
+    spawnFood(canvas);
+    clearInterval(snakeInterval);
+    snakeInterval = setInterval(()=>tickSnake(canvas,ctx), 130);
+}
+
+function tickSnake(canvas, ctx) {
+    const head = {x:snake[0].x+dx, y:snake[0].y+dy};
+    snake.unshift(head);
+    if(head.x===food.x && head.y===food.y) {
+        score+=10;
+        document.getElementById('snake-score-display').textContent = score;
+        spawnFood(canvas);
+    } else { snake.pop(); }
+
+    if(head.x<0||head.x>=canvas.width||head.y<0||head.y>=canvas.height||snake.slice(1).some(p=>p.x===head.x&&p.y===head.y)) {
+        clearInterval(snakeInterval);
+        snakeRunning = false;
+        document.getElementById('s-start').disabled = false;
+        showNotif('🐍 Game Over — Puntos: '+score);
+        return;
+    }
+
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    // Grid
+    ctx.strokeStyle='rgba(255,255,255,0.03)';
+    for(let x=0;x<canvas.width;x+=20){ ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,canvas.height);ctx.stroke(); }
+    for(let y=0;y<canvas.height;y+=20){ ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(canvas.width,y);ctx.stroke(); }
+    // Food
+    ctx.fillStyle='#ff5f56';
+    ctx.beginPath();ctx.arc(food.x+10,food.y+10,8,0,Math.PI*2);ctx.fill();
+    // Snake
+    snake.forEach((p,i) => {
+        ctx.fillStyle = i===0 ? '#f15d22' : '#27c93f';
+        ctx.beginPath();ctx.roundRect(p.x+1,p.y+1,18,18,4);ctx.fill();
+    });
+}
+
+function spawnFood(canvas) {
+    food = { x:Math.floor(Math.random()*(canvas.width/20))*20, y:Math.floor(Math.random()*(canvas.height/20))*20 };
+}
+
+document.addEventListener('keydown', e => {
+    if(!snakeRunning) return;
+    if(e.key==='ArrowLeft'&&dx===0){dx=-20;dy=0;}
+    if(e.key==='ArrowUp'&&dy===0){dx=0;dy=-20;}
+    if(e.key==='ArrowRight'&&dx===0){dx=20;dy=0;}
+    if(e.key==='ArrowDown'&&dy===0){dx=0;dy=20;}
+});
+
+// === CALCULADORA ===
+function calcOp(key) {
+    if(key==='C'){calcStr='0';calcExpr='';}
+    else if(key==='⌫'){calcStr=calcStr.length>1?calcStr.slice(0,-1):'0';}
+    else if(key==='='){
+        try{
+            calcExpr=calcStr+' =';
+            calcStr=String(eval(calcStr));
+        }catch{calcStr='Error';}
+    }
+    else{
+        if(calcStr==='0'&&'0123456789.'.includes(key)) calcStr=key;
+        else calcStr+=key;
+    }
+    document.getElementById('calc-display').textContent=calcStr;
+    document.getElementById('calc-expr').textContent=calcExpr;
+    if(key==='=') calcExpr='';
+}
+</script>
 </body>
 </html>
