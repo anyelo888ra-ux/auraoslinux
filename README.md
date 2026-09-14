@@ -35,7 +35,7 @@ No modifica tu PC, es solo una web-app para experimentar y jugar con ventanas, t
 
 ## 🖼️ Capturas
 
-![Captura de AuraOS](./capture/Captura%20de%20pantalla%202026-07-09%20001542.png)
+![Captura de AuraOS](./capture/Captura%20de%20pantalla%202026-09-13%20211350.png)
 
 
 ---
