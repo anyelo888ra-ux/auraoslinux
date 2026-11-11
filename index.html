@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AuraOS Linux v8.1.0 — Chronioñ Dawn</title>
+    <title>AuraOS Linux v8.2.0 — Nexus Integration</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Ubuntu:wght@300;400;500;700&family=Ubuntu+Mono&display=swap');
 
@@ -164,9 +164,6 @@
         .toggle.on { background: #f15d22; }
         .toggle::after { content:''; position: absolute; width: 14px; height: 14px; background: white; border-radius: 50%; top: 3px; left: 3px; transition: left 0.2s; }
         .toggle.on::after { left: 19px; }
-        .theme-grid { display: flex; gap: 8px; }
-        .theme-swatch { width: 40px; height: 40px; border-radius: 8px; cursor: pointer; border: 2px solid transparent; transition: all 0.15s; }
-        .theme-swatch:hover, .theme-swatch.selected { border-color: #f15d22; transform: scale(1.1); }
 
         /* STORE */
         .store-item { background: rgba(255,255,255,0.03); padding: 14px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.07); display: flex; justify-content: space-between; align-items: center; transition: border-color 0.15s; }
@@ -185,7 +182,7 @@
         #notepad-text { flex-grow: 1; background: #07070f; border: 1px solid #1a1a2e; border-radius: 6px; color: #e0e0ff; font-family: 'Ubuntu Mono', monospace; font-size: 13px; padding: 12px; outline: none; resize: none; line-height: 1.6; }
 
         /* BOTONES */
-        .btn { background: #f15d22; color: white; border: none; padding: 8px 16px; border-radius: 6px; font-weight: 500; cursor: pointer; font-size: 13px; transition: all 0.15s; display: inline-flex; align-items: center; gap: 6px; }
+        .btn { background: #f15d22; color: white; border: none; padding: 8px 16px; border-radius: 6px; font-weight: 500; cursor: pointer; font-size: 13px; transition: all 0.15s; display: inline-flex; align-items: center; gap: 6px; text-decoration: none; }
         .btn:hover { background: #ff7038; transform: translateY(-1px); }
         .btn:disabled { background: #333; cursor: not-allowed; transform: none; color: #666; }
         .btn.secondary { background: rgba(255,255,255,0.08); }
@@ -281,19 +278,6 @@
         ::-webkit-scrollbar-thumb { background: rgba(241,93,34,0.4); border-radius: 3px; }
         ::-webkit-scrollbar-thumb:hover { background: rgba(241,93,34,0.7); }
 
-        /* MODO CLARO */
-        body.light-mode { background: #f0f0f8; color: #111; }
-        body.light-mode #desktop { background: radial-gradient(circle at 15% 20%, #d8ccff 0%, transparent 45%), radial-gradient(circle at 85% 80%, #ffcba4 0%, transparent 50%), #eeeef8; }
-        body.light-mode .window { background: linear-gradient(145deg, #ffffff, #f5f5ff); border-color: rgba(200,180,255,0.4); }
-        body.light-mode .window-header { background: linear-gradient(90deg, #ececff, #e4e4f8); }
-        body.light-mode .window-body { background: #f8f8ff; color: #111; }
-        body.light-mode #taskbar { background: rgba(240,240,252,0.97); border-top-color: rgba(0,0,0,0.08); }
-        body.light-mode #start-menu { background: rgba(248,248,255,0.97); border-color: rgba(0,0,0,0.1); }
-        body.light-mode .menu-item { color: #333; }
-        body.light-mode .taskbar-tab { background: rgba(0,0,0,0.06); color: #333; }
-        body.light-mode .desktop-icon { background: rgba(255,255,255,0.5); }
-        body.light-mode .desktop-icon p { color: #222; text-shadow: 0 1px 2px rgba(255,255,255,0.8); }
-
         /* CHANGELOG */
         .changelog-item { display: flex; gap: 10px; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
         .changelog-item:last-child { border-bottom: none; }
@@ -315,6 +299,12 @@
     <div id="icon-chronion" class="desktop-icon" style="top:20px;left:20px" onclick="openWin('chronion-win','🌐')">
         <div class="ico">🌐</div><p>Chronioñ</p>
     </div>
+    
+    <!-- NUEVO ICONO NEXUS AI -->
+    <div id="icon-nexus" class="desktop-icon" style="top:20px;left:130px" onclick="openWin('nexus-ai-win','✨')">
+        <div class="ico">✨</div><p>Nexus AI</p>
+    </div>
+
     <div id="icon-files" class="desktop-icon" style="top:130px;left:20px" onclick="openWin('files-win','📁')">
         <div class="ico">📂</div><p>Archivos</p>
     </div>
@@ -324,26 +314,27 @@
     <div id="icon-imgview" class="desktop-icon" style="top:350px;left:20px" onclick="openWin('imgview-win','🖼️')">
         <div class="ico">🖼️</div><p>Visor imagen</p>
     </div>
-    <div id="icon-store" class="desktop-icon" style="top:20px;left:130px" onclick="openWin('store-win','🛍️')">
+    <div id="icon-store" class="desktop-icon" style="top:130px;left:130px" onclick="openWin('store-win','🛍️')">
         <div class="ico">🛍️</div><p>Aura Store</p>
     </div>
-    <div id="icon-config" class="desktop-icon" style="top:130px;left:130px" onclick="openWin('config-win','⚙️')">
+    <div id="icon-config" class="desktop-icon" style="top:240px;left:130px" onclick="openWin('config-win','⚙️')">
         <div class="ico">⚙️</div><p>Ajustes</p>
     </div>
-    <div id="icon-info" class="desktop-icon" style="top:240px;left:130px" onclick="openWin('info-win','ℹ️')">
-        <div class="ico">ℹ️</div><p>Info v8.1</p>
+    <div id="icon-info" class="desktop-icon" style="top:350px;left:130px" onclick="openWin('info-win','ℹ️')">
+        <div class="ico">ℹ️</div><p>Info v8.2</p>
     </div>
-    <div id="icon-credits" class="desktop-icon" style="top:350px;left:130px" onclick="openWin('credits-win','📜')">
+    <div id="icon-credits" class="desktop-icon" style="top:350px;left:240px" onclick="openWin('credits-win','📜')">
         <div class="ico">📜</div><p>Créditos</p>
     </div>
+    
     <!-- Instalables (ocultos hasta instalar) -->
-    <div id="desk-snake" class="desktop-icon" style="top:20px;left:240px;display:none" onclick="openWin('snake-win','🐍')">
+    <div id="desk-snake" class="desktop-icon" style="top:20px;left:350px;display:none" onclick="openWin('snake-win','🐍')">
         <div class="ico">🐍</div><p>Snake</p>
     </div>
-    <div id="desk-term" class="desktop-icon" style="top:130px;left:240px;display:none" onclick="openWin('term-win','💻')">
+    <div id="desk-term" class="desktop-icon" style="top:130px;left:350px;display:none" onclick="openWin('term-win','💻')">
         <div class="ico">💻</div><p>Terminal</p>
     </div>
-    <div id="desk-calc" class="desktop-icon" style="top:240px;left:240px;display:none" onclick="openWin('calc-win','🧮')">
+    <div id="desk-calc" class="desktop-icon" style="top:240px;left:350px;display:none" onclick="openWin('calc-win','🧮')">
         <div class="ico">🧮</div><p>Calculadora</p>
     </div>
 </div>
@@ -376,6 +367,27 @@
     <iframe id="chronion-frame" src="https://chronion-search.duckdns.org/"
             sandbox="allow-same-origin allow-scripts allow-popups allow-forms allow-top-navigation">
     </iframe>
+</div>
+
+<!-- NEXUS AI (LA NUEVA VENTANA) -->
+<div class="window" id="nexus-ai-win" style="width: 900px; height: 650px;">
+    <div class="window-header">
+        <span class="window-title">✨ Nexus AI — Web Client</span>
+        <div class="window-controls">
+            <button class="win-btn win-min" onclick="minWin('nexus-ai-win')"></button>
+            <button class="win-btn win-max" onclick="maxWin('nexus-ai-win')"></button>
+            <button class="win-btn win-close" onclick="closeWin('nexus-ai-win')"></button>
+        </div>
+    </div>
+    <div class="window-body" style="padding: 0; overflow: hidden;">
+        <!-- El iframe que carga la web de Nexus.AI -->
+        <iframe 
+            src="https://nexus.ai-nex.duckdns.org/" 
+            style="width: 100%; height: 100%; border: none; background: #fff;"
+            allow="clipboard-read; clipboard-write; microphone"
+            sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
+        ></iframe>
+    </div>
 </div>
 
 <!-- ARCHIVOS -->
@@ -467,8 +479,8 @@
         </div>
         <div class="settings-section">
             <h4>Sistema</h4>
-            <div class="setting-row"><span>Versión</span><span style="color:#aaa;font-size:12px">AuraOS Linux v8.1.0</span></div>
-            <div class="setting-row"><span>Kernel</span><span style="color:#aaa;font-size:12px">AuraEngine 2.1</span></div>
+            <div class="setting-row"><span>Versión</span><span style="color:#aaa;font-size:12px">AuraOS Linux v8.2.0</span></div>
+            <div class="setting-row"><span>Kernel</span><span style="color:#aaa;font-size:12px">AuraEngine 2.2</span></div>
         </div>
         <button class="btn" style="background:#ff5f56;width:100%" onclick="if(confirm('¿Resetear AuraOS?')){localStorage.clear();location.reload();}">⚠️ Resetear sistema</button>
     </div>
@@ -483,6 +495,14 @@
         </div>
     </div>
     <div class="window-body" style="gap:10px">
+        <!-- NEXUS AI EN LA STORE -->
+        <div class="store-item" style="border-color: #7c3aed;">
+            <div class="store-item-info">
+                <div class="store-item-ico">✨</div>
+                <div class="store-item-desc"><strong>Nexus AI</strong><p>Tu asistente inteligente personalizado.</p></div>
+            </div>
+            <button class="btn purple" onclick="openWin('nexus-ai-win','✨')">Abrir</button>
+        </div>
         <div class="store-item">
             <div class="store-item-info">
                 <div class="store-item-ico">🐍</div>
@@ -504,13 +524,6 @@
             </div>
             <button class="btn purple" id="ins-calc" onclick="install('calc')">Instalar</button>
         </div>
-        <div class="store-item">
-            <div class="store-item-info">
-                <div class="store-item-ico">🌐</div>
-                <div class="store-item-desc"><strong>Chronioñ Search</strong><p>Motor de búsqueda integrado.</p></div>
-            </div>
-            <button class="btn" onclick="openWin('chronion-win','🌐')">Abrir</button>
-        </div>
     </div>
 </div>
 
@@ -523,7 +536,7 @@
         </div>
     </div>
     <div class="window-body">
-        <div class="term-out" id="t-out">AuraOS v8.1.0 — AuraShell 2.1<br>Escribe <span style="color:#f15d22">help</span> para ver comandos disponibles.<br><br></div>
+        <div class="term-out" id="t-out">AuraOS v8.2.0 — AuraShell 2.1<br>Escribe <span style="color:#f15d22">help</span> para ver comandos disponibles.<br><br></div>
         <div class="term-row">
             <span class="term-prompt">aura@linux:~$</span>
             <input type="text" id="t-in" onkeydown="runCmd(event)" placeholder="escribe un comando...">
@@ -584,28 +597,25 @@
 <!-- INFO VERSIÓN -->
 <div class="window" id="info-win" style="width:520px;height:460px">
     <div class="window-header">
-        <span class="window-title">ℹ️ AuraOS v8.1.0 — Novedades</span>
+        <span class="window-title">ℹ️ AuraOS v8.2.0 — Novedades</span>
         <div class="window-controls">
             <button class="win-btn win-close" onclick="closeWin('info-win')"></button>
         </div>
     </div>
     <div class="window-body" style="gap:8px">
         <div style="display:flex;align-items:center;gap:12px;padding:12px;background:rgba(241,93,34,0.08);border-radius:8px;border:1px solid rgba(241,93,34,0.2)">
-            <div style="font-size:36px">🌅</div>
-            <div><strong style="font-size:15px;color:#f15d22">AuraOS Linux v8.1.0</strong><br><span style="font-size:12px;color:#888">"Chronioñ Dawn" — Compilación 2026.09.13</span></div>
+            <div style="font-size:36px">✨</div>
+            <div><strong style="font-size:15px;color:#f15d22">AuraOS Linux v8.2.0</strong><br><span style="font-size:12px;color:#888">"Nexus Integration" — Compilación 2026.11.13</span></div>
         </div>
-        <div class="changelog-item"><span class="changelog-badge badge-new">NUEVO</span><div class="changelog-text"><strong>Chronioñ Browser v1.1</strong> con pestañas múltiples, barra de URL mejorada y motor de búsqueda integrado.</div></div>
-        <div class="changelog-item"><span class="changelog-badge badge-new">NUEVO</span><div class="changelog-text"><strong>Bloc de notas</strong> con contador de palabras y guardado local.</div></div>
-        <div class="changelog-item"><span class="changelog-badge badge-new">NUEVO</span><div class="changelog-text"><strong>Visor de imágenes</strong> con soporte para abrir archivos locales.</div></div>
-        <div class="changelog-item"><span class="changelog-badge badge-new">NUEVO</span><div class="changelog-text"><strong>Calculadora</strong> disponible en Aura Store.</div></div>
-        <div class="changelog-item"><span class="changelog-badge badge-update">UPDATE</span><div class="changelog-text">Barra de tareas rediseñada con reloj y bandeja mejorados.</div></div>
-        <div class="changelog-item"><span class="changelog-badge badge-update">UPDATE</span><div class="changelog-text">Ajustes ampliados con toggle de partículas y modo oscuro/claro.</div></div>
-        <div class="changelog-item"><span class="changelog-badge badge-fix">FIX</span><div class="changelog-text">Función maxWin corregida — DeepSeek no pudo terminarlo, Claude sí. 😂</div></div>
+        <div class="changelog-item"><span class="changelog-badge badge-new">NUEVO</span><div class="changelog-text"><strong>Nexus AI Nativo:</strong> Integración completa con la web de Nexus.AI (Backend en Vercel + Supabase + Groq).</div></div>
+        <div class="changelog-item"><span class="changelog-badge badge-update">UPDATE</span><div class="changelog-text">Aura Store actualizada con el nuevo módulo de Nexus AI.</div></div>
+        <div class="changelog-item"><span class="changelog-badge badge-update">UPDATE</span><div class="changelog-text">Escritorio y menú de inicio rediseñados para incluir los nuevos accesos.</div></div>
+        <div class="changelog-item"><span class="changelog-badge badge-fix">FIX</span><div class="changelog-text">Ajustes de Kernel actualizados a la versión 2.2.</div></div>
     </div>
 </div>
 
 <!-- CRÉDITOS -->
-<div class="window" id="credits-win" style="width:460px;height:320px">
+<div class="window" id="credits-win" style="width:460px;height:340px">
     <div class="window-header">
         <span class="window-title">📜 Créditos</span>
         <div class="window-controls">
@@ -615,15 +625,14 @@
     <div class="window-body" style="gap:10px">
         <div style="text-align:center;padding:10px">
             <div style="font-size:40px">🌅</div>
-            <h3 style="color:#f15d22;margin-top:8px">AuraOS Linux v8.1.0</h3>
-            <p style="font-size:12px;color:#888">"Chronioñ Dawn"</p>
+            <h3 style="color:#f15d22;margin-top:8px">AuraOS Linux v8.2.0</h3>
+            <p style="font-size:12px;color:#888">"Nexus Integration"</p>
         </div>
         <div style="background:rgba(255,255,255,0.03);border-radius:8px;padding:14px;font-size:13px;display:flex;flex-direction:column;gap:8px">
             <div style="display:flex;justify-content:space-between"><span style="color:#888">Lead Dev</span><strong>Angelo (c00lkidd_v2yt)</strong></div>
             <div style="display:flex;justify-content:space-between"><span style="color:#888">AI Assistants</span><strong>Claude & DeepSeek</strong></div>
-            <div style="display:flex;justify-content:space-between"><span style="color:#888">Navegador</span><strong>Chronioñ Browser v1.1</strong></div>
-            <div style="display:flex;justify-content:space-between"><span style="color:#888">Motor búsqueda</span><strong>Chronioñ Search</strong></div>
-            <div style="display:flex;justify-content:space-between"><span style="color:#888">Base</span><strong>AuraOS v8.0 "New Dawn"</strong></div>
+            <div style="display:flex;justify-content:space-between"><span style="color:#888">Motor IA</span><strong>Nexus.AI (Vercel + Groq)</strong></div>
+            <div style="display:flex;justify-content:space-between"><span style="color:#888">Base</span><strong>AuraOS v8.1.0 "Chronioñ Dawn"</strong></div>
         </div>
         <a href="https://github.com/anyelo888ra-ux/auraoslinux" target="_blank" class="btn" style="text-decoration:none;justify-content:center">🐙 Ver en GitHub</a>
     </div>
@@ -652,6 +661,7 @@
     <input class="menu-search" placeholder="🔍 Buscar aplicaciones..." oninput="filterMenu(this.value)">
     <div id="menu-apps">
         <div class="menu-section-title">Aplicaciones</div>
+        <div class="menu-item" data-name="nexus ai chat inteligencia" onclick="openWin('nexus-ai-win','✨');closeMenu()"><span class="app-icon">✨</span> Nexus AI</div>
         <div class="menu-item" data-name="chronion browser" onclick="openWin('chronion-win','🌐');closeMenu()"><span class="app-icon">🌐</span> Chronioñ Browser</div>
         <div class="menu-item" data-name="archivos files" onclick="openWin('files-win','📁');closeMenu()"><span class="app-icon">📂</span> Archivos</div>
         <div class="menu-item" data-name="bloc notas notepad" onclick="openWin('notepad-win','📝');closeMenu()"><span class="app-icon">📝</span> Bloc de notas</div>
@@ -716,7 +726,7 @@ window.onload = () => {
     if(!darkMode) { document.getElementById('dark-toggle').classList.remove('on'); }
     if(!particlesOn) { document.getElementById('particle-toggle').classList.remove('on'); document.getElementById('particles').style.display='none'; }
 
-    showNotif('🌅 AuraOS v8.1.0 "Chronioñ Dawn" cargado');
+    showNotif('✨ AuraOS v8.2.0 "Nexus Integration" cargado');
 };
 
 // === TIEMPO ===
@@ -1073,14 +1083,14 @@ function runCmd(e) {
     } else if(cmd === 'neofetch') {
         resp += `<span style="color:#f15d22">
   /\\_____/\\
- ( o   o  )   <b>AuraOS Linux v8.1.0</b>
- (  =^=   )   Chronioñ Dawn
+ ( o   o  )   <b>AuraOS Linux v8.2.0</b>
+ (  =^=   )   Nexus Integration
   )       (   ---------------
- (_________)  OS: AuraOS v8.1.0 (Chronioñ Dawn)
-              Kernel: AuraEngine 2.1
+ (_________)  OS: AuraOS v8.2.0
+              Kernel: AuraEngine 2.2
               Shell: AuraShell 2.1
               Dev: Angelo (c00lkidd_v2yt)
-              AI: Claude + DeepSeek</span>`;
+              AI: Claude + DeepSeek + Nexus</span>`;
     } else if(cmd === 'ls') {
         resp += files.map(f=>`${f.type==='folder'?'<span style="color:#3b82f6">📁':f.type==='img'?'<span style="color:#a78bfa">🖼️':'<span style="color:#00ff88">📄'} ${f.name}</span>`).join('  ');
     } else if(cmd === 'pwd') {
@@ -1090,11 +1100,11 @@ function runCmd(e) {
     } else if(cmd === 'date') {
         resp += new Date().toLocaleString('es');
     } else if(cmd === 'uname') {
-        resp += `AuraOS v8.1.0 AuraEngine2.1 x86_64`;
+        resp += `AuraOS v8.2.0 AuraEngine2.2 x86_64`;
     } else if(cmd === 'history') {
         resp += termHistory.slice(-10).map((c,i)=>`${i+1}. ${c}`).join('<br>');
     } else if(cmd === 'about') {
-        resp += `AuraOS Linux v8.1.0 "Chronioñ Dawn"<br>Escritorio HTML simulado. Dev: Angelo`;
+        resp += `AuraOS Linux v8.2.0 "Nexus Integration"<br>Escritorio HTML simulado. Dev: Angelo`;
     } else if(cmd === 'clear') {
         out.innerHTML = '';
         input.value = '';
@@ -1102,10 +1112,10 @@ function runCmd(e) {
     } else if(cmd.startsWith('echo ')) {
         resp += cmd.substring(5);
     } else if(cmd.startsWith('open ')) {
-        const apps = {'browser':'chronion-win','archivos':'files-win','store':'store-win','snake':'snake-win','calc':'calc-win'};
+        const apps = {'browser':'chronion-win','nexus':'nexus-ai-win','archivos':'files-win','store':'store-win','snake':'snake-win','calc':'calc-win'};
         const key = cmd.split(' ')[1];
         if(apps[key]) { openWin(apps[key],'🚀'); resp += `Abriendo ${key}...`; }
-        else resp += `<span style="color:#ff5f56">No encontrado: ${key}</span><br>Apps: browser, archivos, store, snake, calc`;
+        else resp += `<span style="color:#ff5f56">No encontrado: ${key}</span><br>Apps: browser, nexus, archivos, store, snake, calc`;
     } else {
         resp += `<span style="color:#ff5f56">bash: ${cmd}: comando no encontrado. Escribe 'help'.</span>`;
     }
